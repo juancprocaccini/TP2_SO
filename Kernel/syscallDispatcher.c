@@ -1,0 +1,94 @@
+#include "syscalls.h"
+#include <stdint.h>
+#include "videoDriver.h"
+#include "keyboardDriver.h"
+#include "time.h"
+
+uint64_t syscallDispatcher(uint64_t syscall_num, uint64_t arg1, uint64_t arg2,
+                           uint64_t arg3, uint64_t arg4, uint64_t arg5, uint64_t arg6) {
+    switch (syscall_num) {
+
+        /* --- Video --- */
+        case SYS_DRAWCHAR:
+            vPutChar(arg1, arg2);
+            break;
+        case SYS_DRAWSTRING:
+            vprintString((const char*)arg1, arg2);
+            break;
+        case SYS_PUTPIXEL:
+            putPixel(arg1, arg2, arg3);
+            break;
+        case SYS_FILLRECT:
+            sys_fillRectangle((uint64_t*)arg1);
+            break;
+        case SYS_CLEAR_SCREEN:
+            clearScreen();
+            break;
+        case SYS_NEWLINE:
+            newLine();
+            break;
+        case SYS_SCROLLDOWN:
+            scrollDown();
+            break;
+        case SYS_MOVE_LEFT:
+            moveCursorLeft();
+            break;
+        case SYS_MOVE_RIGHT:
+            moveCursorRight();
+            break;
+        case SYS_DELETE_CHAR:
+            deleteChar();
+            break;
+        case SYS_INCREASE_FONT:
+            increaseFontSize();
+            break;
+        case SYS_DECREASE_FONT:
+            decreaseFontSize();
+            break;
+        case SYS_VD_DRAWSTRING:
+            vd_drawString(arg1, arg2, (const char*)arg3, arg4, arg5);
+            break;
+        case SYS_DRAW_INT_AT:
+            vd_drawIntAt((int)arg1, (int)arg2, (int)arg3, arg4, arg5, (int)arg6);
+            break;
+        case SYS_GET_SCREEN_WIDTH:
+            return getScreenWidth();
+        case SYS_GET_SCREEN_HEIGHT:
+            return getScreenHeight();
+
+        /* --- Teclado --- */
+        case SYS_KBD_BUFFER_GET:
+            return (uint64_t)kbd_buffer_get();
+
+        /* --- Tiempo / RTC --- */
+        case SYS_GET_SECONDS:
+            return getSeconds();
+        case SYS_GET_MINUTES:
+            return getMinutes();
+        case SYS_GET_HOURS:
+            return getHours();
+        case SYS_GET_DAY:
+            return getDay();
+        case SYS_GET_MONTH:
+            return getMonth();
+        case SYS_GET_YEAR:
+            return getYear();
+        case SYS_TIMER_WAIT:
+            timer_wait(arg1);
+            break;
+        case SYS_GET_TIME:
+            getTime((uint8_t*)arg1);
+            break;
+
+        /* TODO (TP2): agregar casos para memoria, procesos, semáforos, pipes */
+        /* Ver syscalls.h para los números reservados */
+
+        default:
+            return -1;
+    }
+    return 0;
+}
+
+void sys_fillRectangle(uint64_t* args) {
+    fillRectangle(args[0], args[1], args[2], args[3], args[4]);
+}

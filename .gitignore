@@ -1,0 +1,61 @@
+#Binary Files
+*.bin
+*.sys
+
+#The images
+*.img
+*.qcow2
+*.vmdk
+
+#Object files
+*.o
+
+# PDFs (consignas, informes — no van al repo)
+*.pdf
+
+# Archivos de respaldo
+*.old
+*~
+*.bak
+
+# Metadata de sistemas operativos
+*.DS_Store
+*Zone.Identifier
+Thumbs.db
+
+# Debug symbols de macOS/Xcode
+*.dSYM/
+
+# Logs
+*.log
+qemu*.log
+
+# IDE / editores
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# Historial
+.bash_history
+
+# Archivos temporales
+*.tmp
+*.swp
+*.swo
+*~
+# Archivos compilados del proyecto
+*.elf
+*.o
+kernel.bin
+kernel
+Kernel/kernel
+Image/kernel.img
+Image/atoi
+Image/*.img
+
+# Toolchain compilado
+Toolchain/ModulePacker/ModulePacker
+
+# Módulos de userland compilados
+Userland/SampleCodeModule/*.o
+Userland/SampleCodeModule/SampleCodeModule
