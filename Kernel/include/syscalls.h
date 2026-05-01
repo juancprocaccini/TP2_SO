@@ -42,13 +42,9 @@
 #define SYS_TIMER_WAIT      22
 #define SYS_GET_TIME        23
 
-/* 24-26 eran GET_REGISTERS / DIVZERO / INVALIDOPCODE de Arquitectura — eliminados */
-
 /* --- Video con coordenadas --- */
 #define SYS_VD_DRAWSTRING   27
 #define SYS_DRAW_INT_AT     28
-
-/* 29 era MEASURE_RTC_ACCESS de Arquitectura — eliminado */
 
 /* --- Resolución de pantalla --- */
 #define SYS_GET_SCREEN_WIDTH  30

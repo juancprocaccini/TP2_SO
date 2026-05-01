@@ -17,8 +17,7 @@ void _irq01Handler();
 // Handler de syscalls (definido en asm)
 void _syscallHandler();
 
-// Functions to mask/unmask PICs (implemented in picInit.c)
+// Máscara del PIC maestro (implementada en libasm.asm)
 void picMasterMask(uint8_t mask);
-void picSlaveMask(uint8_t mask);
 
 #endif

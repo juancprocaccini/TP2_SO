@@ -4,6 +4,8 @@
 #include "keyboardDriver.h"
 #include "time.h"
 
+static void sys_fillRectangle(uint64_t* args);
+
 uint64_t syscallDispatcher(uint64_t syscall_num, uint64_t arg1, uint64_t arg2,
                            uint64_t arg3, uint64_t arg4, uint64_t arg5, uint64_t arg6) {
     switch (syscall_num) {
@@ -89,6 +91,6 @@ uint64_t syscallDispatcher(uint64_t syscall_num, uint64_t arg1, uint64_t arg2,
     return 0;
 }
 
-void sys_fillRectangle(uint64_t* args) {
+static void sys_fillRectangle(uint64_t* args) {
     fillRectangle(args[0], args[1], args[2], args[3], args[4]);
 }

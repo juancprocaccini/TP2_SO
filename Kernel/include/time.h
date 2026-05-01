@@ -3,27 +3,26 @@
 
 #include <stdint.h>
 
-// Funciones de ticks del timer
+// Manejador de interrupción del timer (IRQ0)
 void timeHandler(void);
+
+// Contadores de tiempo basados en ticks del timer
 uint64_t getTicks(void);
-int secondsPassed(void);
-int secondsPassed2(uint64_t ticks);
+int      secondsPassed(void);
 
-void timeHandler();
-
-// Funciones RTC - obtener fecha y hora actual
+// Funciones de fecha/hora (RTC)
 void getDate(uint8_t* buffer);
 void getTime(uint8_t* buffer);
 
-// Funciones individuales RTC
-uint8_t getSeconds(void);
-uint8_t getMinutes(void);
-uint8_t getHours(void);
-uint8_t getDay(void);
-uint8_t getMonth(void);
-uint16_t getYear(void);
+// Funciones individuales del RTC (implementadas en libasm.asm)
+uint64_t getSeconds(void);
+uint64_t getMinutes(void);
+uint64_t getHours(void);
+uint64_t getDay(void);
+uint64_t getMonth(void);
+uint64_t getYear(void);
 
-//funcion para pausa en segs
-void timer_wait(int ticks_to_wait);
+// Pausa de N segundos (bloqueante, basada en RTC)
+void timer_wait(int seconds);
 
 #endif

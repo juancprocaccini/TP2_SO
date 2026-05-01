@@ -6,9 +6,7 @@
 void * memset(void * destination, int32_t character, uint64_t length);
 void * memcpy(void * destination, const void * source, uint64_t length);
 
-char *cpuVendor(char *result);
-
-// Timer configuration
+// Configuración del timer PIT
 void setTimerFreq(uint64_t freq);
 
 #endif

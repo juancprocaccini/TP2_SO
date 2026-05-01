@@ -1,36 +1,18 @@
 #include "irqDispatcher.h"
 #include "time.h"
+#include "keyboardDriver.h"
 
-extern uint8_t inb(uint16_t port);
-extern void outb(uint16_t port, uint8_t value);
-extern void io_wait(void);
-
-extern void kbd_handler(uint8_t scancode);
-
-static void (*irq_handlers[16])(void) = {0};
+extern uint8_t pressed_key;
 
 void irqDispatcher(uint64_t irq) {
     switch (irq) {
-        case 0:  // Timer
-        timeHandler();
+        case 0:  // Timer (IRQ0)
+            timeHandler();
             break;
-        case 1:  // Keyboard
-            {
-                uint8_t scancode = inb(0x60);
-                kbd_handler(scancode);
-            }
+        case 1:  // Teclado — scancode leído por _irq01Handler
+            kbd_handler(pressed_key);
             break;
         default:
-            // IRQ no manejada
             break;
     }
-    
-   
 }
-
-void register_irq_handler(int irq, void (*handler)(void)) {
-    if (irq >= 0 && irq < 16) {
-        irq_handlers[irq] = handler;
-    }
-}
-

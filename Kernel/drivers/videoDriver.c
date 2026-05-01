@@ -64,7 +64,6 @@ typedef struct vbe_mode_info_structure * VBEInfoPtr;
 
 VBEInfoPtr VBE_mode_info = (VBEInfoPtr) 0x0000000000005C00;
 
-
 void putPixel(uint64_t hexColor, uint64_t x, uint64_t y) {
     uint8_t * framebuffer = (uint8_t *) (uint64_t) VBE_mode_info->framebuffer;
     uint64_t offset = (x * ((VBE_mode_info->bpp)/8)) + (y * VBE_mode_info->pitch);
@@ -73,8 +72,7 @@ void putPixel(uint64_t hexColor, uint64_t x, uint64_t y) {
     framebuffer[offset+2]   =  (hexColor >> 16) & 0xFF;
 }
 
-
-	void moveCursorLeft(){
+void moveCursorLeft(){
 	uint64_t spaceX = CHAR_WIDTH*size;
 	uint64_t spaceY = CHAR_HEIGHT*size;
 	if(cursorX >= spaceX){
@@ -88,8 +86,6 @@ void putPixel(uint64_t hexColor, uint64_t x, uint64_t y) {
 	}
 	
 }
-
-
 
 void deleteChar(){
 	// Solo borrar si hay algo en el buffer
@@ -143,8 +139,7 @@ void scrollDown(){
 		}
 		uint64_t clearStartY = VBE_mode_info->height - lineHeight;
 		fillRectangle(0, clearStartY, VBE_mode_info->width, lineHeight, DEFAULT_COLOR);
-	}
-
+}
 
 void newLine(){
 	// Guardar el \n en el buffer antes de hacer el salto
@@ -192,8 +187,6 @@ void setCursorPosition(uint32_t x, uint32_t y){
 	cursorY = y;
 }
 
-
-
 void vPutChar(uint64_t c, uint64_t color){
 	switch(c){
 	case'\n':
@@ -231,7 +224,6 @@ void vprintString(const char* s, uint64_t color){
 		vPutChar((uint64_t)(*p), color);
 	}
 }
-
 
 void vd_drawChar(uint64_t x, uint64_t y, char ch, uint64_t color, uint64_t size){
 
@@ -292,7 +284,6 @@ void vd_drawIntAt(int x, int y, int val, uint64_t color, uint64_t size, int righ
 	}
 }
 
-
 // Función para redibujar todo el contenido del buffer manteniendo los tamaños originales
 void redrawScreen(void) {
 	// Limpiar la pantalla
@@ -345,7 +336,9 @@ void redrawScreen(void) {
 		}
 	}
 
-}// Aumenta el tamaño de la fuente (max 4)
+}
+
+// Aumenta el tamaño de la fuente (max 4)
 void increaseFontSize(void) {
 	const uint8_t MAX_SIZE = 2;
 	if (size < MAX_SIZE) {
