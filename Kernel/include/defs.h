@@ -11,22 +11,27 @@
 
 #define MAX_PROCESSES   32
 #define MAX_FDS         16
-#define MAX_SEMAPHORES  64
-#define MAX_PIPES       32
-#define MAX_PRIO        5
+#define MAX_PIPES       64
+#define MAX_PRIO        3
 #define MAX_WAITERS     MAX_PROCESSES
 
 #define STACK_SIZE      16384
+
+/* Semaphore namespace */
+#define SEM_USER_MAX    100   /* user-accessible ids: 0..99 */
+#define SEM_KERNEL_MAX  350   /* kernel-only ids:   100..349 (pipe internals) */
 
 /*
  * Layout de memoria:
  *   0x100000 .. ~0x300000   kernel (.text, .rodata, .data, .bss)
  *   0x400000 .. <0x600000   imagen del módulo de userland
- *   0x600000 .. 0x2000000   heap del kernel (28 MB) — gestionado por mem_alloc
+ *   0x600000 .. 0x1600000   user heap  (16 MB)
+ *   0x1600000.. 0x2600000   kernel heap (16 MB)
  */
-#define HEAP_START      0x600000UL
-#define HEAP_END        0x2000000UL
-#define HEAP_SIZE       (HEAP_END - HEAP_START)   /* 28 MB */
+#define USER_HEAP_START   0x600000UL
+#define USER_HEAP_SIZE    0x1000000UL   /* 16 MB */
+#define KERNEL_HEAP_START (USER_HEAP_START + USER_HEAP_SIZE)   /* 0x1600000 */
+#define KERNEL_HEAP_SIZE  0x1000000UL   /* 16 MB */
 
 /* File descriptors estándar */
 #define FD_STDIN        0

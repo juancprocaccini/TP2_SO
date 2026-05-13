@@ -2,6 +2,9 @@
 #include <lib.h>
 #include <idtLoader.h>
 #include "keyboardDriver.h"
+#include <mem.h>
+#include <mem_user.h>
+#include <defs.h>
 
 extern uint8_t bss;
 extern uint8_t endOfKernel;
@@ -55,6 +58,8 @@ int main() {
 	loadModules();
 	idtLoader();
 	kbd_init();
+	user_mem_init((void *)USER_HEAP_START, USER_HEAP_SIZE);
+	mem_init((void *)KERNEL_HEAP_START, KERNEL_HEAP_SIZE);
 	asm_sti();
 
 	((EntryPoint)sampleCodeModuleAddress)();
