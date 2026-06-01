@@ -4,54 +4,44 @@
 #include <stdint.h>
 #include "defs.h"
 
-/*
- * Estructuras y funciones de procesos.
- * Implementaciones en Kernel/processes/.
- */
+typedef int pid_t;
 
-typedef int64_t pid_t;
-
-typedef enum {
-	PROC_RUNNING,
-	PROC_READY,
-	PROC_BLOCKED,
-	PROC_ZOMBIE,
-	PROC_FREE
-} ProcessState;
+typedef enum { LOW = 0, MEDIUM, HIGH } priority_t;
+typedef enum { FREE = 0, READY, BLOCKED, ZOMBIE } pstate_t;
 
 typedef struct PCB {
-	pid_t          pid;
-	pid_t          ppid;
-	ProcessState   state;
-	int            priority;
-	uint64_t       rsp;
-	uint64_t       rbp;
-	uint64_t       stack_base;
-	uint64_t       stack_size;
-	char           name[32];
-	int            is_foreground;
-	int            fds[MAX_FDS];
-	int            exit_status;
-	pid_t          waiter;
+    pid_t      pid;
+    pstate_t   state;
+    priority_t priority;
+    uint64_t   rsp;
+    uint64_t   stack_base;
+    int        argc;
+    char     **argv;
+    char       name[32];
+    
+    /* 0=stdin, 1=stdout, 2=stderr. Valores >= 3 indican (pipe_id + 3) */
+    int        fds[3];
+    
+    int64_t    exit_status;
+    int        killable;           /* idle = 0 */
+    struct PCB *waiting_me;        /* Proceso que me hizo wait() */
+    struct PCB *waiting_for;       /* Proceso por el que estoy haciendo wait() */
+    
+    /* -1 si no está esperando un semáforo. Otro valor indica el ID del semáforo */
+    int64_t    blocked_by_sem;
 } PCB;
 
-typedef void (*process_entry_t)(int argc, char **argv);
+typedef int (*entry_t)(char **argv, int argc);
 
-/*
- * Crea un proceso. argv se copia al stack del nuevo proceso, fds[2] son
- * los FDs iniciales para stdin/stdout (heredables del padre).
- * Retorna el PID asignado, o -1 en error.
- */
-pid_t process_create(process_entry_t entry, int argc, char **argv,
-                     int priority, int is_foreground, int fds[2],
-                     const char *name);
+pid_t process_create(entry_t rip, priority_t pri, int killable, char **argv, int argc, int fds[3]);
+void  process_wrapper(entry_t rip, char **argv, int argc, pid_t pid);
 
 void  process_exit(int status);
 pid_t process_getpid(void);
 void  process_yield(void);
 
 int   process_kill(pid_t pid);
-int   process_nice(pid_t pid, int priority);
+int   process_nice(pid_t pid, priority_t priority);
 int   process_block(pid_t pid);
 int   process_unblock(pid_t pid);
 int   process_waitpid(pid_t pid);

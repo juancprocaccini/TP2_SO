@@ -7,6 +7,8 @@ GLOBAL getDay
 GLOBAL getMonth
 GLOBAL getYear
 GLOBAL picMasterMask
+GLOBAL _cli
+GLOBAL timer_tick
 
 section .text
 
@@ -212,4 +214,12 @@ picMasterMask:
 	out 0x21, al        ; Puerto 0x21 = PIC maestro data
 
 	pop rbp
+	ret
+
+_cli:
+	cli
+	ret
+
+timer_tick:
+	int 20h
 	ret
