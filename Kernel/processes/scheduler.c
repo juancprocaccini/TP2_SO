@@ -20,6 +20,8 @@ void scheduler_init(pid_t shell_pid, pid_t idle_pid) {
     running = NULL;
     times_ran = 0;
     initialized = 1;
+
+    scheduler_ready(shell_pcb);
 }
 
 uint64_t scheduler(uint64_t current_rsp) {

@@ -75,7 +75,7 @@ pid_t process_create(entry_t rip, priority_t pri, int killable, char **argv, int
 
     /* * Forjado de Stack.
      * Simula el marco de una interrupción para que iretq restaure el contexto.
-     * El orden empujado desciende en memoria y es inverso al popState.
+     * El orden de empuje desciende en memoria y debe encajar con popState (RAX -> R15).
      */
     uint64_t stack_top = (uint64_t)stack + STACK_SIZE;
     uint64_t *stack_frame = (uint64_t *)stack_top;
@@ -86,21 +86,21 @@ pid_t process_create(entry_t rip, priority_t pri, int killable, char **argv, int
     *(--stack_frame) = 0x08;                        /* CS */
     *(--stack_frame) = (uint64_t)process_wrapper;   /* RIP */
     
-    *(--stack_frame) = 0;                           /* R15 */
-    *(--stack_frame) = 0;                           /* R14 */
-    *(--stack_frame) = 0;                           /* R13 */
-    *(--stack_frame) = 0;                           /* R12 */
-    *(--stack_frame) = 0;                           /* R11 */
-    *(--stack_frame) = 0;                           /* R10 */
-    *(--stack_frame) = 0;                           /* R9 */
-    *(--stack_frame) = 0;                           /* R8 */
+    *(--stack_frame) = 0;                           /* RAX */
+    *(--stack_frame) = 0;                           /* RBX */
+    *(--stack_frame) = (uint64_t)pid;               /* RCX */
+    *(--stack_frame) = (uint64_t)argc;              /* RDX */
     *(--stack_frame) = (uint64_t)new_argv;          /* RSI */
     *(--stack_frame) = (uint64_t)rip;               /* RDI */
     *(--stack_frame) = 0;                           /* RBP */
-    *(--stack_frame) = (uint64_t)argc;              /* RDX */
-    *(--stack_frame) = (uint64_t)pid;               /* RCX */
-    *(--stack_frame) = 0;                           /* RBX */
-    *(--stack_frame) = 0;                           /* RAX */
+    *(--stack_frame) = 0;                           /* R8 */
+    *(--stack_frame) = 0;                           /* R9 */
+    *(--stack_frame) = 0;                           /* R10 */
+    *(--stack_frame) = 0;                           /* R11 */
+    *(--stack_frame) = 0;                           /* R12 */
+    *(--stack_frame) = 0;                           /* R13 */
+    *(--stack_frame) = 0;                           /* R14 */
+    *(--stack_frame) = 0;                           /* R15 */
 
     pcb->rsp = (uint64_t)stack_frame;
 
