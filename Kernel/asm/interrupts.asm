@@ -7,6 +7,7 @@ GLOBAL pressed_key
 
 EXTERN irqDispatcher
 EXTERN syscallDispatcher
+EXTERN scheduler
 
 %macro pushState 0
     push rax
@@ -49,6 +50,13 @@ _irq00Handler:
     pushState
     mov rdi, 0      ; IRQ number (Timer)
     call irqDispatcher
+
+    ; -- INICIO CONTEXT SWITCH --
+    mov rdi, rsp    ; Pasamos el RSP actual como argumento
+    call scheduler  ; Retorna el próximo RSP en RAX
+    mov rsp, rax    ; Efectuamos el cambio de stack
+    ; -- FIN CONTEXT SWITCH --
+
     mov al, 0x20
     out 0x20, al    ; EOI al Master PIC
     popState

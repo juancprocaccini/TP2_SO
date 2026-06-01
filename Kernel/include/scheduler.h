@@ -2,23 +2,17 @@
 #define SCHEDULER_H
 
 #include <stdint.h>
-#include "process.h"
+#include <process.h>
 
-/*
- * Interfaz del scheduler (Round Robin con prioridades).
- * Implementaciones en Kernel/processes/scheduler.c.
- *
- * El context switch ocurre en _irq00Handler (timer) y en el handler de
- * SYS_YIELD: scheduler_tick() / scheduler_pick_next() actualizan la variable
- * global next_rsp (en assembly), que el handler carga antes de iretq.
- */
+void     scheduler_init(pid_t shell_pid, pid_t idle_pid);
+uint64_t scheduler(uint64_t current_rsp);
 
-void   scheduler_init(void);
-void   scheduler_add(pid_t pid);
-void   scheduler_remove(pid_t pid);
-void   scheduler_tick(void);          /* llamado desde el IRQ 0 (timer) */
-void   scheduler_block(pid_t pid);
-void   scheduler_unblock(pid_t pid);
-pid_t  scheduler_current(void);
+void     scheduler_ready(PCB *p);
+void     scheduler_block(PCB *p);
+void     scheduler_block_no_yield(PCB *p);
+void     scheduler_yield(void);
+void     scheduler_unschedule(PCB *p);
+
+PCB * scheduler_get_running(void);
 
 #endif

@@ -106,3 +106,10 @@ pid_t process_create(entry_t rip, priority_t pri, int killable, char **argv, int
 
     return pid;
 }
+
+PCB *process_get(pid_t pid) {
+    if (pid < 0 || pid >= MAX_PROCESSES) {
+        return NULL;
+    }
+    return &pcbs[pid];
+}
