@@ -10,18 +10,43 @@ static PCB     *running;
 static uint64_t times_ran;
 static PCB     *idle_pcb;
 static PCB     *shell_pcb;
+static int      lists_ready = 0;
 static int      initialized = 0;
 
-void scheduler_init(pid_t shell_pid, pid_t idle_pid) {
+/*
+ * Inicialización perezosa de las listas. Permite que process_create encole
+ * procesos vía scheduler_ready antes de que scheduler_init corra, sin obligar
+ * a kernel.c a llamar a dos rutinas distintas.
+ */
+static int ensure_lists(void) {
+    if (lists_ready) return 0;
     ready_list = list_new(NULL);
+    if (!ready_list) return -1;
     blocked_list = list_new(NULL);
+    if (!blocked_list) {
+        list_free(ready_list);
+        ready_list = NULL;
+        return -1;
+    }
+    lists_ready = 1;
+    return 0;
+}
+
+void scheduler_init(pid_t shell_pid, pid_t idle_pid) {
+    ensure_lists();
     shell_pcb = process_get(shell_pid);
     idle_pcb = process_get(idle_pid);
     running = NULL;
     times_ran = 0;
-    initialized = 1;
 
-    scheduler_ready(shell_pcb);
+    /*
+     * Idle no compite en el round-robin: corre sólo cuando ready_list queda
+     * vacía. process_create lo dejó encolado, así que lo sacamos acá.
+     */
+    if (idle_pcb) {
+        list_remove(ready_list, idle_pcb);
+    }
+    initialized = 1;
 }
 
 uint64_t scheduler(uint64_t current_rsp) {
@@ -53,10 +78,13 @@ uint64_t scheduler(uint64_t current_rsp) {
     return current_rsp;
 }
 
-void scheduler_ready(PCB *p) {
-    p->state = READY;
+int scheduler_ready(PCB *p) {
+    if (!p) return -1;
+    if (ensure_lists() < 0) return -1;
     list_remove(blocked_list, p);
-    list_add(ready_list, p);
+    if (list_add(ready_list, p) < 0) return -1;
+    p->state = READY;
+    return 0;
 }
 
 void scheduler_block_no_yield(PCB *p) {
