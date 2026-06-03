@@ -29,7 +29,7 @@ void idtLoader() {
     
     // IRQs - Timer, Teclado, etc (32-47)
     setup_IDT_entry(0x20, (uint64_t)&_irq00Handler);  // Timer
-    setTimerFreq(11932);
+    setTimerFreq(11932); // 1193182 Hz / 100 Hz = 11932 (aprox) para ticks cada 10 ms
     picMasterMask(0xFC); // Habilitar IRQ0 (timer) e IRQ1 (teclado)
     setup_IDT_entry(0x21, (uint64_t)&_irq01Handler);  // Teclado
     

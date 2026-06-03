@@ -17,6 +17,7 @@
 *.old
 *~
 *.bak
+tree.txt
 
 # Metadata de sistemas operativos
 *.DS_Store
