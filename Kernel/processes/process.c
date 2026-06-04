@@ -50,7 +50,7 @@ static void free_argv_copy(char **argv_copy, int count) {
 }
 
 void process_wrapper(entry_t rip, char **argv, int argc, pid_t pid) {
-    int ret = rip(argv, argc);
+    int ret = rip(argv, argc); // El proceso corre su código hasta que termina o llama a exit
     _cli();
     make_zombie(pid, ret);
     timer_tick();

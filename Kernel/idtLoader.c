@@ -46,5 +46,6 @@ static void setup_IDT_entry(int index, uint64_t offset) {
     idt[index].offset_high = (offset >> 32) & 0xFFFFFFFF;
     idt[index].ist = 0;
     idt[index].type_attr = 0x8E;  // P=1, DPL=00, Type=1110 (Interrupt Gate)
+    // TODO: Setear un .type_attr para syscalls con DPL=11 (attr = 0xEE) y usarlo en setup_IDT_entry para index 0x80
     idt[index].reserved = 0;
 }

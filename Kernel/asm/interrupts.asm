@@ -68,7 +68,7 @@ _irq01Handler:
     
     ; SEGUNDO: Leer la tecla PRIMERO
     xor rax, rax
-    in al, 0x60              ; Leer scancode del teclado
+    in al, 0x60              ; Leer scancode del teclado.
     mov [pressed_key], al    ; Guardar solo 1 byte (evita corromper reg_snapshot)
     
     ; TERCERO: Si NO es F10 (scancode 0x44), saltar toda la captura
