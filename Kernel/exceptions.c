@@ -42,8 +42,31 @@ static void uint64ToHexKernel(uint64_t value, char* buffer) {
 }
 
 void exceptionDispatcher(int exception, uint64_t rsp) {
-    (void)rsp;
 
+    debugPrintHex("123probandoDentroDeExceptions, ya ocurrio el problema: ", 1);
+
+    uint64_t *registers = (uint64_t *)rsp;
+
+    // Nombres en el orden exacto de tus 'push' en Assembly + el bloque de la CPU
+    char *reg_names[] = {
+        "R15:    ", "R14:    ", "R13:    ", "R12:    ", "R11:    ", "R10:    ", "R9:     ", "R8:     ",
+        "RBP:    ", "RDI:    ", "RSI:    ", "RDX:    ", "RCX:    ", "RBX:    ", "RAX:    ",
+        "RIP:    ", "CS:     ", "RFLAGS: ", "RSP_usr:", "SS:     "};
+
+    vprintString("\n========== !!! KERNEL PANIC !!! ==========\n", 0xFF0000); // Rojo
+    debugPrintHex("NUMERO DE EXCEPCION: ", exception);
+    vprintString("==========================================\n", 0xFFFFFF);
+
+    // Imprimimos los 15 registros guardados por pushState + los 5 de la CPU
+    for (int i = 0; i < 20; i++)
+    {
+        debugPrintHex(reg_names[i], registers[i]);
+    }
+
+    vprintString("==========================================\n", 0xFFFFFF);
+    
+    while (1);
+    
     clearScreen();
 
     vd_drawString(0, 0, "*** EXCEPTION: ", 0xFF0000, 2);

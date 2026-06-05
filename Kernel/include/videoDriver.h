@@ -36,4 +36,8 @@ void redrawScreen(void);
 uint32_t getScreenWidth(void);
 uint32_t getScreenHeight(void);
 
+
+// debug
+void debugPrintHex(const char *mensaje, uint64_t value);
+
 #endif // VIDEODRIVER_H

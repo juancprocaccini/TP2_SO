@@ -1,6 +1,7 @@
 #include <scheduler.h>
 #include <list.h>
 #include <stddef.h>
+#include "videoDriver.h"
 
 extern void timer_tick(void);
 
@@ -49,33 +50,48 @@ void scheduler_init(pid_t shell_pid, pid_t idle_pid) {
     initialized = 1;
 }
 
-uint64_t scheduler(uint64_t current_rsp) {
-    if (!initialized) {
+uint64_t scheduler(uint64_t current_rsp)
+{
+    if (!initialized)
+    {
         return current_rsp;
     }
 
-    if (running != NULL) {
+    if (running != NULL)
+    {
         running->rsp = current_rsp;
     }
 
-    if (list_is_empty(ready_list)) {
+    // Variable estática para recordar quién corrió la última vez
+    static PCB *last_running = NULL;
+
+    // 1. Elegir el próximo proceso
+    if (list_is_empty(ready_list))
+    {
         running = idle_pcb;
-        return idle_pcb->rsp;
     }
-
-    if (running == NULL) {
+    else if (running == NULL)
+    {
         running = (PCB *)list_next(ready_list);
-        return running->rsp;
     }
-
-    if (times_ran >= running->priority || running->state != READY) {
+    else if (times_ran >= running->priority || running->state != READY)
+    {
         times_ran = 0;
         running = (PCB *)list_next(ready_list);
-        return running->rsp;
+    }
+    else
+    {
+        times_ran++;
     }
 
-    times_ran++;
-    return current_rsp;
+    // 2. DEBUG: Si el proceso cambió, lo imprimimos
+    if (running != last_running)
+    {
+        debugPrintHex("Switch a RSP: ", running->rsp);
+        last_running = running;
+    }
+
+    return running->rsp;
 }
 
 int scheduler_ready(PCB *p) {
@@ -114,4 +130,15 @@ void scheduler_unschedule(PCB *p) {
 
 PCB *scheduler_get_running(void) {
     return running;
+}
+
+/*
+ * Según el PLAN: "A PCB is foreground iff it equals shell_pcb->waiting_for..."
+ * Como todavía no implementamos la Shell (F8), por ahora dejamos un "Mock" (un parche)
+ * que dice que todo proceso es foreground. Luego en la F8 lo conectamos con la Shell.
+ */
+int is_foreground(pid_t pid)
+{
+    // TODO (F8): Conectar con shell_pcb->waiting_for
+    return 1;
 }

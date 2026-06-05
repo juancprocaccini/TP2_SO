@@ -1,6 +1,27 @@
 #include <stdint.h>
 #include "usrlib.h"
 
+/* --- Llamadas a ASM --- */
+
+extern void sys_mem_state(MemStats *stats);
+extern void *sys_mem_alloc(uint64_t size);
+extern void sys_mem_free(void *ptr);
+extern int sys_create_process(uint64_t entry, int pri, int killable, char **argv, int argc, int *fds);
+extern void sys_exit(int status);
+extern int sys_getpid(void);
+extern void sys_yield(void);
+extern int sys_waitpid(int pid, int *ret_out);
+extern int sys_kill(int pid);
+extern int sys_nice(int pid, int new_pri);
+extern int sys_block(int pid);
+extern int sys_unblock(int pid);
+extern int sys_ps(ProcessInfoList **info_list_out);
+extern void sys_free_ps(ProcessInfoList *list);
+extern int sys_get_status(int pid);
+extern void sys_get_my_fds(int fds_out[3]);
+
+/* --- Utilidad General --- */
+
 void fillRectangle(int x, int y, int width, int height, uint32_t color) {
     uint64_t info[] = {x, y, width, height, color};
     sys_fillRectangle(info);
@@ -73,3 +94,49 @@ void intToString(int value, char* buffer) {
     while (i > 0) buffer[j++] = tmp[--i];
     buffer[j] = '\0';
 }
+
+void cmd_mem()
+{
+    MemStats stats[2];
+    sys_mem_state(stats); // Llamada a la syscall en ASM
+
+    shell_print("=== KERNEL HEAP ===", 0xFFFFFF);
+    // ... imprimís stats[0].total, stats[0].used, etc ...
+
+    shell_print("=== USER HEAP ===", 0xFFFFFF);
+    // ... imprimís stats[1].total, stats[1].used, etc ...
+}
+
+/* --- Implementación de Wrappers (F4) --- */
+void *malloc(uint64_t size) { return sys_mem_alloc(size); }
+
+void free(void *ptr) { sys_mem_free(ptr); }
+
+int create_process(int (*entry)(char **, int), int pri, int killable, char **argv, int argc, int fds[3])
+{
+    return sys_create_process((uint64_t)entry, pri, killable, argv, argc, fds);
+}
+
+void exit(int status) { sys_exit(status); }
+
+int getpid(void) { return sys_getpid(); }
+
+void yield(void) { sys_yield(); }
+
+int waitpid(int pid, int *ret_out) { return sys_waitpid(pid, ret_out); }
+
+int kill(int pid) { return sys_kill(pid); }
+
+int nice(int pid, int new_pri) { return sys_nice(pid, new_pri); }
+
+int block(int pid) { return sys_block(pid); }
+
+int unblock(int pid) { return sys_unblock(pid); }
+
+int ps(ProcessInfoList **info_list_out) { return sys_ps(info_list_out); }
+
+void free_ps(ProcessInfoList *list) { sys_free_ps(list); }
+
+int get_status(int pid) { return sys_get_status(pid); }
+
+void get_my_fds(int fds_out[3]) { sys_get_my_fds(fds_out); }

@@ -31,10 +31,29 @@ typedef struct PCB {
     int64_t    blocked_by_sem;
 } PCB;
 
+typedef struct ProcessInfo
+{
+    pid_t pid;
+    char name[32];
+    priority_t priority;
+    pstate_t state;
+    uint64_t rsp;
+    uint64_t stack_base;
+    int foreground;
+    int fds[3];
+} ProcessInfo;
+
+typedef struct ProcessInfoList
+{
+    int count;
+    ProcessInfo *entries;
+} ProcessInfoList;
+
 typedef int (*entry_t)(char **argv, int argc);
 
 pid_t process_create(entry_t rip, priority_t pri, int killable, char **argv, int argc, int fds[3]);
 void  process_wrapper(entry_t rip, char **argv, int argc, pid_t pid);
+PCB *process_get(pid_t pid);
 
 void  process_exit(int status);
 pid_t process_getpid(void);
@@ -44,12 +63,13 @@ int   process_kill(pid_t pid);
 int   process_nice(pid_t pid, priority_t priority);
 int   process_block(pid_t pid);
 int   process_unblock(pid_t pid);
-int   process_waitpid(pid_t pid);
+int   process_waitpid(pid_t pid, int *ret_out);
 
-/*
- * Llena buf con un snapshot de los procesos vivos (hasta max).
- * Retorna la cantidad escrita.
- */
+int process_ps(ProcessInfoList **info_list_out);
+void process_free_ps(ProcessInfoList *list);
+int process_get_status(pid_t pid);
+void process_get_my_fds(int fds_out[3]);
+
 int   process_print_all(PCB *buf, int max);
 
 PCB * process_get(pid_t pid);

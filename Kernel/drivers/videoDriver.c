@@ -64,6 +64,41 @@ typedef struct vbe_mode_info_structure * VBEInfoPtr;
 
 VBEInfoPtr VBE_mode_info = (VBEInfoPtr) 0x0000000000005C00;
 
+/// FUNCION DEBUG ///
+
+void debugPrintHex(const char *mensaje, uint64_t value)
+{
+	char buffer[25];
+	int index = 23;
+	buffer[24] = '\0';
+	buffer[index--] = '\n'; // Salto de línea al final
+
+	if (value == 0)
+	{
+		buffer[index--] = '0';
+	}
+	else
+	{
+		while (value > 0 && index >= 2)
+		{
+			int rem = value % 16;
+			if (rem < 10)
+				buffer[index--] = '0' + rem;
+			else
+				buffer[index--] = 'A' + (rem - 10);
+			value /= 16;
+		}
+	}
+	buffer[index--] = 'x';
+	buffer[index] = '0';
+
+	// Imprimir el mensaje en Amarillo y el número en Rojo
+	vprintString(mensaje, 0xFFFF00);
+	vprintString(&buffer[index], 0xFF0000);
+}
+
+/// FIN FUNCION DEVBUG	///
+
 void putPixel(uint64_t hexColor, uint64_t x, uint64_t y) {
     uint8_t * framebuffer = (uint8_t *) (uint64_t) VBE_mode_info->framebuffer;
     uint64_t offset = (x * ((VBE_mode_info->bpp)/8)) + (y * VBE_mode_info->pitch);

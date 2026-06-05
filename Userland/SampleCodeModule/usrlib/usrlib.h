@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+
+
 /* --- Video --- */
 extern void drawChar(uint64_t ch, uint64_t color);
 extern void drawString(const char* s, uint64_t color);
@@ -21,6 +23,7 @@ extern void vd_drawString(uint64_t x, uint64_t y, const char* s, uint64_t color,
 extern void vd_drawIntAt(int x, int y, int val, uint64_t color, uint64_t size, int right_align);
 extern uint32_t getScreenWidth(void);
 extern uint32_t getScreenHeight(void);
+
 
 /* --- Teclado --- */
 extern char kbdGetChar(void);
@@ -43,4 +46,67 @@ void getDateString(char* buffer);
 void intToString(int value, char* buffer);
 void uint64ToHex(uint64_t value, char* buffer);
 
+/* --- Memoria --- */
+typedef struct
+{
+    uint64_t total;
+    uint64_t used;
+    uint64_t free;
+} MemStats;
+
+extern void sys_mem_state(MemStats *stats);
+
+/* --- Procesos --- */
+
+typedef enum
+{
+    U_LOW = 0,
+    U_MEDIUM,
+    U_HIGH
+} u_priority_t;
+
+typedef enum
+{
+    U_FREE = 0,
+    U_READY,
+    U_BLOCKED,
+    U_ZOMBIE
+} u_pstate_t;
+
+typedef struct ProcessInfo
+{
+    int pid;
+    char name[32];
+    int priority;
+    int state;
+    uint64_t rsp;
+    uint64_t stack_base;
+    int foreground;
+    int fds[3];
+} ProcessInfo;
+
+typedef struct ProcessInfoList
+{
+    int count;
+    ProcessInfo *entries;
+} ProcessInfoList;
+
+void *malloc(uint64_t size);
+void free(void *ptr);
+
+int create_process(int (*entry)(char **, int), int pri, int killable, char **argv, int argc, int fds[3]);
+void exit(int status);
+int getpid(void);
+void yield(void);
+int waitpid(int pid, int *ret_out);
+int kill(int pid);
+int nice(int pid, int new_pri);
+int block(int pid);
+int unblock(int pid);
+int ps(ProcessInfoList **info_list_out);
+void free_ps(ProcessInfoList *list);
+int get_status(int pid);
+void get_my_fds(int fds_out[3]);
+
 #endif
+

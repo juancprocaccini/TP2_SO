@@ -20,6 +20,11 @@ global secsToWait, getTime
 global vd_drawString, vd_drawIntAt
 global getScreenWidth, getScreenHeight
 
+global sys_mem_alloc, sys_mem_free, sys_mem_state
+global sys_create_process, sys_exit, sys_getpid, sys_yield, sys_waitpid
+global sys_kill, sys_nice, sys_block, sys_unblock, sys_ps, sys_free_ps
+global sys_get_status, sys_get_my_fds
+
 %macro SYSCALL 1
     mov rax, %1
     int 0x80
@@ -105,3 +110,51 @@ secsToWait:
 
 getTime:
     SYSCALL 23
+
+sys_mem_alloc:
+    SYSCALL 32
+
+sys_mem_free:
+    SYSCALL 33
+
+sys_mem_state:
+    SYSCALL 34
+
+sys_create_process:
+    SYSCALL 40
+
+sys_exit:
+    SYSCALL 41
+
+sys_getpid:
+    SYSCALL 42
+
+sys_yield:
+    SYSCALL 43
+
+sys_waitpid:
+    SYSCALL 44
+
+sys_kill:
+    SYSCALL 45
+
+sys_nice:
+    SYSCALL 46
+
+sys_block:
+    SYSCALL 47
+
+sys_unblock:
+    SYSCALL 48
+
+sys_ps:
+    SYSCALL 49
+
+sys_free_ps:
+    SYSCALL 50
+
+sys_get_status:
+    SYSCALL 51
+
+sys_get_my_fds:
+    SYSCALL 52

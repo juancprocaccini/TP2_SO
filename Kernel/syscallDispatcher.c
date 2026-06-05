@@ -1,8 +1,13 @@
 #include "syscalls.h"
 #include <stdint.h>
+#include <stddef.h>
 #include "videoDriver.h"
 #include "keyboardDriver.h"
 #include "time.h"
+#include "mem.h"
+#include "mem_user.h"
+#include "process.h"
+#include "scheduler.h"
 
 static void sys_fillRectangle(uint64_t* args);
 
@@ -82,9 +87,66 @@ uint64_t syscallDispatcher(uint64_t syscall_num, uint64_t arg1, uint64_t arg2,
             getTime((uint8_t*)arg1);
             break;
 
-        /* TODO (TP2): agregar casos para memoria, procesos, semáforos, pipes */
-        /* Ver syscalls.h para los números reservados */
+        /* --- Memoria --- */
+        case SYS_MEM_ALLOC:
+            return (uint64_t)user_mem_alloc(arg1); // Rutea a tu User Heap.
+        case SYS_MEM_FREE:
+            user_mem_free((void *)arg1);
+            return 0;
+        case SYS_MEM_STATE:
+        {
+            // arg1 es el puntero al arreglo de 2 MemStats: MemStats info[2]
+            MemStats *stats = (MemStats *)arg1;
 
+            if (stats != NULL)
+            {
+                // stats[0] = Kernel Heap
+                mem_state(&stats[0].total, &stats[0].used, &stats[0].free);
+
+                // stats[1] = User Heap
+                user_mem_state(&stats[1].total, &stats[1].used, &stats[1].free);
+            }
+            return 0;
+        }
+            // Rellena estadísticas de memoria si se requiere
+            return 0;
+
+            /* --- Procesos --- */
+        case SYS_CREATE_PROCESS:
+            return (uint64_t)process_create((entry_t)arg1, (priority_t)arg2, (int)arg3, (char **)arg4, (int)arg5, (int *)arg6);
+        case SYS_EXIT:
+            process_exit((int)arg1);
+            break;
+        case SYS_GETPID:
+            return (uint64_t)process_getpid();
+        case SYS_YIELD:
+            process_yield();
+            return 0;
+        case SYS_WAITPID:
+            return (uint64_t)process_waitpid((pid_t)arg1, (int *)arg2);
+        case SYS_KILL:
+            return (uint64_t)process_kill((pid_t)arg1);
+        case SYS_NICE:
+            return (uint64_t)process_nice((pid_t)arg1, (priority_t)arg2);
+        case SYS_BLOCK:
+            return (uint64_t)process_block((pid_t)arg1);
+        case SYS_UNBLOCK:
+            return (uint64_t)process_unblock((pid_t)arg1);
+        case SYS_PS:
+            return (uint64_t)process_ps((ProcessInfoList **)arg1);
+        case SYS_FREE_PS:
+            process_free_ps((ProcessInfoList *)arg1);
+            return 0;
+        case SYS_GET_STATUS:
+            return (uint64_t)process_get_status((pid_t)arg1);
+        case SYS_GET_MY_FDS:
+            process_get_my_fds((int *)arg1);
+            return 0;
+
+            /* TODO (TP2): agregar casos para semáforos, pipes */
+            /* Ver syscalls.h para los números reservados */
+
+        
         default:
             return -1;
     }
