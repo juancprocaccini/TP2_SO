@@ -4,19 +4,18 @@
 
 Para compilar (memory manager propio):
 ```bash
-docker run --rm -v "$(pwd):/root" -w /root agodio/itba-so-multiarch:3.1 make
+docker run --rm --user $(id -u):$(id -g) -v "$(pwd):/root" -w /root agodio/itba-so-multiarch:3.1 make
 ```
 
 Para compilar con buddy system:
 ```bash
-docker run --rm -v "$(pwd):/root" -w /root agodio/itba-so-multiarch:3.1 make buddy
+docker run --rm --user $(id -u):$(id -g) -v "$(pwd):/root" -w /root agodio/itba-so-multiarch:3.1 make buddy
 ```
 
 Para limpiar artefactos:
 ```bash
-docker run --rm -v "$(pwd):/root" -w /root agodio/itba-so-multiarch:3.1 make clean
+docker run --rm --user $(id -u):$(id -g) -v "$(pwd):/root" -w /root agodio/itba-so-multiarch:3.1 make clean
 ```
-
 > **Nota:** al alternar entre `make` y `make buddy` es necesario ejecutar `make clean` primero.
 
 Para correr en QEMU (requiere acceso gráfico):
@@ -45,5 +44,3 @@ qemu-system-x86_64 -enable-kvm -m 512 -drive format=raw,file=Image/x64BareBonesI
 ---
 
 ## Citas y uso de IA
-
-sudo chown -R $USER:$USER .

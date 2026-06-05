@@ -23,3 +23,4 @@ asm_cli:
 asm_hlt:
 	hlt
 	ret
+

@@ -65,8 +65,6 @@ void exceptionDispatcher(int exception, uint64_t rsp) {
 
     vprintString("==========================================\n", 0xFFFFFF);
     
-    while (1);
-    
     clearScreen();
 
     vd_drawString(0, 0, "*** EXCEPTION: ", 0xFF0000, 2);

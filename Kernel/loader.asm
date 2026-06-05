@@ -2,7 +2,7 @@ global loader
 global outb
 global inb
 global io_wait
-global asm_sti
+global _sti
 
 extern main
 extern initializeKernelBinary
@@ -40,6 +40,6 @@ io_wait:
 
 ; Function: asm_sti
 ; Enables global interrupts
-asm_sti:
+_sti:
     sti                 ; Enable interrupts
     ret

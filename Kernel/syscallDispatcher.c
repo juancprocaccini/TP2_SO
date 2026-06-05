@@ -8,6 +8,7 @@
 #include "mem_user.h"
 #include "process.h"
 #include "scheduler.h"
+#include "semaphore.h"
 
 static void sys_fillRectangle(uint64_t* args);
 
@@ -143,10 +144,24 @@ uint64_t syscallDispatcher(uint64_t syscall_num, uint64_t arg1, uint64_t arg2,
             process_get_my_fds((int *)arg1);
             return 0;
 
-            /* TODO (TP2): agregar casos para semáforos, pipes */
-            /* Ver syscalls.h para los números reservados */
+            /* --- Semáforos --- */
+        case SYS_SEM_OPEN:
+            return (uint64_t)ksem_open((int)arg1, arg2);
 
-        
+        case SYS_SEM_OPEN_GET_ID:
+            return (uint64_t)ksem_open_get_id(arg1);
+
+        case SYS_SEM_WAIT:
+            return (uint64_t)ksem_wait((int)arg1);
+
+        case SYS_SEM_POST:
+            return (uint64_t)ksem_post((int)arg1);
+
+        case SYS_SEM_CLOSE:
+            return (uint64_t)ksem_close((int)arg1);
+
+        /* TODO (TP2): agregar casos para pipes */
+
         default:
             return -1;
     }

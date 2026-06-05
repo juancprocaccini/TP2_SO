@@ -108,5 +108,12 @@ void free_ps(ProcessInfoList *list);
 int get_status(int pid);
 void get_my_fds(int fds_out[3]);
 
+/* --- Semáforos --- */
+int sem_open(int id, uint64_t initial);
+int sem_open_get_id(uint64_t initial);
+int sem_wait(int id);
+int sem_post(int id);
+int sem_close(int id);
+
 #endif
 

@@ -9,6 +9,7 @@
 ;   instrucción 'syscall'. En ese caso arg4 deberá ir en r10 (rcx es
 ;   destruido por el hardware al ejecutar syscall).
 
+; De Video y Tiempo
 global drawChar, drawString, putPixel, sys_fillRectangle
 global clearScreen, newLine, scrollDown
 global moveCursorLeft, moveCursorRight, deleteChar
@@ -20,10 +21,14 @@ global secsToWait, getTime
 global vd_drawString, vd_drawIntAt
 global getScreenWidth, getScreenHeight
 
+; De Procesos y memoria
 global sys_mem_alloc, sys_mem_free, sys_mem_state
 global sys_create_process, sys_exit, sys_getpid, sys_yield, sys_waitpid
 global sys_kill, sys_nice, sys_block, sys_unblock, sys_ps, sys_free_ps
 global sys_get_status, sys_get_my_fds
+
+; De Semáforos
+global sys_sem_open, sys_sem_open_get_id, sys_sem_wait, sys_sem_post, sys_sem_close
 
 %macro SYSCALL 1
     mov rax, %1
@@ -158,3 +163,18 @@ sys_get_status:
 
 sys_get_my_fds:
     SYSCALL 52
+
+sys_sem_open:
+    SYSCALL 53
+
+sys_sem_open_get_id:
+    SYSCALL 54
+
+sys_sem_wait:
+    SYSCALL 55
+
+sys_sem_post:
+    SYSCALL 56
+
+sys_sem_close:
+    SYSCALL 57

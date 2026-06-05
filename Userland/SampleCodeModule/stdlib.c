@@ -19,6 +19,11 @@ extern int sys_ps(ProcessInfoList **info_list_out);
 extern void sys_free_ps(ProcessInfoList *list);
 extern int sys_get_status(int pid);
 extern void sys_get_my_fds(int fds_out[3]);
+extern int sys_sem_open(int id, uint64_t initial);
+extern int sys_sem_open_get_id(uint64_t initial);
+extern int sys_sem_wait(int id);
+extern int sys_sem_post(int id);
+extern int sys_sem_close(int id);
 
 /* --- Utilidad General --- */
 
@@ -107,7 +112,8 @@ void cmd_mem()
     // ... imprimís stats[1].total, stats[1].used, etc ...
 }
 
-/* --- Implementación de Wrappers (F4) --- */
+/* --- Procesos --- */
+
 void *malloc(uint64_t size) { return sys_mem_alloc(size); }
 
 void free(void *ptr) { sys_mem_free(ptr); }
@@ -140,3 +146,30 @@ void free_ps(ProcessInfoList *list) { sys_free_ps(list); }
 int get_status(int pid) { return sys_get_status(pid); }
 
 void get_my_fds(int fds_out[3]) { sys_get_my_fds(fds_out); }
+
+/* --- Semáforos --- */
+
+int sem_open(int id, uint64_t initial)
+{
+    return sys_sem_open(id, initial);
+}
+
+int sem_open_get_id(uint64_t initial)
+{
+    return sys_sem_open_get_id(initial);
+}
+
+int sem_wait(int id)
+{
+    return sys_sem_wait(id);
+}
+
+int sem_post(int id)
+{
+    return sys_sem_post(id);
+}
+
+int sem_close(int id)
+{
+    return sys_sem_close(id);
+}

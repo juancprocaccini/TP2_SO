@@ -1,18 +1,19 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <lib.h>
-#include <idtLoader.h>
+#include "idtLoader.h"
 #include "keyboardDriver.h"
 #include <mem.h>
 #include <mem_user.h>
 #include <defs.h>
-#include <process.h>
-#include <scheduler.h>
+#include "process.h"
+#include "scheduler.h"
+#include "semaphore.h"
 
 extern uint8_t bss;
 extern uint8_t endOfKernel;
 extern uint8_t endOfKernelBinary;
-extern void asm_sti(void);
+extern void _sti(void);
 extern void timer_tick(void);
 
 static const uint64_t PageSize = 0x1000;
@@ -68,8 +69,9 @@ int main() {
     pid_t idle_pid  = process_create(idle_process, LOW, 0, NULL, 0, NULL);
 
     scheduler_init(shell_pid, idle_pid);
+    ksem_init();
 
-    asm_sti();
+    _sti();
 
     /* * Forzamos una interrupción por software (int 0x20) para ceder el control
      * al scheduler. A partir de este punto, main() no vuelve a ejecutar.

@@ -35,7 +35,7 @@ void idtLoader() {
     
     // Syscalls (INT 0x80)
     setup_IDT_entry(0x80, (uint64_t)&_syscallHandler);
-
+    idt[0x80].type_attr = 0xEE;
     load_idt();
 }
 

@@ -4,7 +4,7 @@
 #include <lib.h>
 #include <defs.h>
 #include <stddef.h>
-#include "videoDriver.h" // para debug
+#include <semaphore.h>
 
 PCB pcbs[MAX_PROCESSES];
 
@@ -237,6 +237,14 @@ int process_block(pid_t pid) {
     return 0;
 }
 
+int process_set_block_by_sem(pid_t pid,int id) {
+    if (pid < 0 || pid >= MAX_PROCESSES)
+        return -1;
+    PCB *p = &pcbs[pid];
+    p->blocked_by_sem = id;
+    return 0;
+}
+
 int process_unblock(pid_t pid) {
     if (pid < 0 || pid >= MAX_PROCESSES)
         return -1;
@@ -292,7 +300,7 @@ int process_kill(pid_t pid) {
     // Desalojo seguro de las colas de Semáforos (F5 ready)
     if (p->blocked_by_sem != -1)
     {
-        // TODO: queue_remove(sems[p->blocked_by_sem].waiters, p);
+        ksem_remove_waiter(p->blocked_by_sem, p);
     }
 
     // Liberación completa de recursos

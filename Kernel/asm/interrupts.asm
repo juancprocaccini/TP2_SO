@@ -173,6 +173,7 @@ _irq01Handler:
 
 ; Syscall handler
 _syscallHandler:
+    cli ; cambio
     push rbp
     push r15
     push r14

@@ -60,39 +60,38 @@ typedef struct
 
 /* --- Memoria --- */
 #define SYS_MEM_ALLOC 32
-#define SYS_MEM_FREE 33
+#define SYS_MEM_FREE  33
 #define SYS_MEM_STATE 34
 
 /* --- Procesos --- */
 #define SYS_CREATE_PROCESS 40
-#define SYS_EXIT 41
-#define SYS_GETPID 42
-#define SYS_YIELD 43
-#define SYS_WAITPID 44
-#define SYS_KILL 45
-#define SYS_NICE 46
-#define SYS_BLOCK 47
-#define SYS_UNBLOCK 48
-#define SYS_PS 49
-#define SYS_FREE_PS 50
-#define SYS_GET_STATUS 51
-#define SYS_GET_MY_FDS 52
+#define SYS_EXIT           41
+#define SYS_GETPID         42
+#define SYS_YIELD          43
+#define SYS_WAITPID        44
+#define SYS_KILL           45
+#define SYS_NICE           46
+#define SYS_BLOCK          47
+#define SYS_UNBLOCK        48
+#define SYS_PS             49
+#define SYS_FREE_PS        50
+#define SYS_GET_STATUS     51
+#define SYS_GET_MY_FDS     52
+
+/* --- Semáforos --- */
+#define SYS_SEM_OPEN        53
+#define SYS_SEM_OPEN_GET_ID 54 
+#define SYS_SEM_WAIT        55 
+#define SYS_SEM_POST        56 
+#define SYS_SEM_CLOSE       57
 
 /* ----------------------------------------------------------------
  * TODO (TP2): agregar los siguientes grupos de syscalls
  * ---------------------------------------------------------------- */
-
-/* --- Sincronización (semáforos) --- */
-/* #define SYS_SEM_CREATE  52 */
-/* #define SYS_SEM_OPEN    53 */
-/* #define SYS_SEM_WAIT    54 */
-/* #define SYS_SEM_POST    55 */
-/* #define SYS_SEM_CLOSE   56 */
-
 /* --- IPC (pipes) --- */
-/* #define SYS_PIPE_OPEN   57 */
-/* #define SYS_PIPE_READ   58 */
-/* #define SYS_PIPE_WRITE  59 */
-/* #define SYS_PIPE_CLOSE  60 */
+/* #define SYS_PIPE_OPEN   58 */
+/* #define SYS_PIPE_READ   59 */
+/* #define SYS_PIPE_WRITE  60 */
+/* #define SYS_PIPE_CLOSE  61 */
 
 #endif

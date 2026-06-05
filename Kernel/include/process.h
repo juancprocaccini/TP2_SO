@@ -58,8 +58,9 @@ PCB *process_get(pid_t pid);
 void  process_exit(int status);
 pid_t process_getpid(void);
 void  process_yield(void);
+int process_set_block_by_sem(pid_t pid, int id);
 
-int   process_kill(pid_t pid);
+int process_kill(pid_t pid);
 int   process_nice(pid_t pid, priority_t priority);
 int   process_block(pid_t pid);
 int   process_unblock(pid_t pid);
