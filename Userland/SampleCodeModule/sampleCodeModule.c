@@ -1,5 +1,5 @@
 #include <stdint.h>
-#include "./usrlib/usrlib.h"
+#include "usrlib.h"
 
 int main(void) {
     clearScreen();

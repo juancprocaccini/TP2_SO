@@ -1,5 +1,5 @@
 #include "shell.h"
-#include "./usrlib/usrlib.h"
+#include "usrlib.h"
 
 void shell_init(void) {
     /* TODO (TP2): implementar shell interactiva */
