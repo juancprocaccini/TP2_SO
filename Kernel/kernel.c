@@ -31,10 +31,6 @@ void * getStackBase() {
     );
 }
 
-void * initializeKernelBinary() {
-    clearBSS(&bss, &endOfKernel - &bss);
-    return getStackBase();
-}
 
 static void loadModules(void) {
     uint8_t *ptr = &endOfKernelBinary;
@@ -49,6 +45,13 @@ static void loadModules(void) {
     }
 }
 
+void *initializeKernelBinary()
+{
+    loadModules();
+    clearBSS(&bss, &endOfKernel - &bss);
+    return getStackBase();
+}
+
 static int idle_process(char **argv, int argc) {
     while (1) {
         __asm__ volatile("hlt");
@@ -57,7 +60,6 @@ static int idle_process(char **argv, int argc) {
 }
 
 int main() {
-    loadModules();
     idtLoader();
     kbd_init();
     
