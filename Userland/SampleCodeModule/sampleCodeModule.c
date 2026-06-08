@@ -1,4 +1,3 @@
-#include <stdint.h>
 #include "usrlib.h"
 
 int main(void) {
@@ -17,7 +16,7 @@ int main(void) {
             deleteChar();
         } else {
             drawChar((uint64_t)c, 0xFFFFFF);
-        }
+    }
     }
 
     return 0;
