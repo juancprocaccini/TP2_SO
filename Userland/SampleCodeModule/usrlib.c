@@ -152,45 +152,123 @@ static void _print_int(int64_t v)
     _print_uint((uint64_t)v, 10);
 }
 
-void printf(const char *fmt, ...)
+static void _putcA(char c)
 {
-    va_list ap;
-    va_start(ap, fmt);
-
-    for (const char *p = fmt; *p; p++)
-    {
-        if (*p != '%')
-        {
-            _putc(*p);
-            continue;
-        }
-        p++;
-        switch (*p)
-        {
-        case 'd':
-            _print_int((int64_t)va_arg(ap, int));
-            break;
-        case 'u':
-            _print_uint((uint64_t)va_arg(ap, unsigned int), 10);
-            break;
-        case 'x':
-            _print_uint((uint64_t)va_arg(ap, unsigned int), 16);
-            break;
-        case 's':
-            _puts(va_arg(ap, const char *));
-            break;
-        case 'c':
-            _putc((char)va_arg(ap, int));
-            break;
-        case '%':
-            _putc('%');
-            break;
-        default:
-            _putc('%');
-            _putc(*p);
-            break;
-        }
-    }
-
-    va_end(ap);
+    if (c == '\n')
+        newLine();
+    else
+        drawChar((uint64_t)(unsigned char)c, 0xFFFFFA);
 }
+
+// static void _putcB(char c)
+// {
+//     if (c == '\n')
+//         newLine();
+//     else
+//         drawChar((uint64_t)(unsigned char)c, 0xFFFFFA);
+// }
+// static void _putcB(char c)
+// {
+//     if (c == '\n')
+//         newLine();
+//     else
+//         drawChar((uint64_t)(unsigned char)c, 0xFFFFFA);
+// }
+// static void _putcB(char c)
+// {
+//     if (c == '\n')
+//         newLine();
+//     else
+//         drawChar((uint64_t)(unsigned char)c, 0xFFFFFA);
+// }
+// static void _putcB(char c)
+// {
+//     if (c == '\n')
+//         newLine();
+//     else
+//         drawChar((uint64_t)(unsigned char)c, 0xFFFFFA);
+// }
+// static void _putcB(char c)
+// {
+//     if (c == '\n')
+//         newLine();
+//     else
+//         drawChar((uint64_t)(unsigned char)c, 0xFFFFFA);
+// }
+// static void _putcB(char c)
+// {
+//     if (c == '\n')
+//         newLine();
+//     else
+//         drawChar((uint64_t)(unsigned char)c, 0xFFFFFA);
+// }
+// static void _putcB(char c)
+// {
+//     if (c == '\n')
+//         newLine();
+//     else
+//         drawChar((uint64_t)(unsigned char)c, 0xFFFFFA);
+// }
+// static void _putcB(char c)
+// {
+//     if (c == '\n')
+//         newLine();
+//     else
+//         drawChar((uint64_t)(unsigned char)c, 0xFFFFFA);
+// }
+// static void _putcB(char c)
+// {
+//     if (c == '\n')
+//         newLine();
+//     else
+//         drawChar((uint64_t)(unsigned char)c, 0xFFFFFA);
+// }
+// static void _putcB(char c)
+// {
+//     if (c == '\n')
+//         newLine();
+//     else
+//         drawChar((uint64_t)(unsigned char)c, 0xFFFFFA);
+// }
+// static void _putcB(char c)
+// {
+//     if (c == '\n')
+//         newLine();
+//     else
+//         drawChar((uint64_t)(unsigned char)c, 0xFFFFFA);
+// }
+// static void _putcB(char c)
+// {
+//     if (c == '\n')
+//         newLine();
+//     else
+//         drawChar((uint64_t)(unsigned char)c, 0xFFFFFA);
+// }
+// static void _putcB(char c)
+// {
+//     if (c == '\n')
+//         newLine();
+//     else
+//         drawChar((uint64_t)(unsigned char)c, 0xFFFFFA);
+// }
+// static void _putcB(char c)
+// {
+//     if (c == '\n')
+//         newLine();
+//     else
+//         drawChar((uint64_t)(unsigned char)c, 0xFFFFFA);
+// }
+// static void _putcB(char c)
+// {
+//     if (c == '\n')
+//         newLine();
+//     else
+//         drawChar((uint64_t)(unsigned char)c, 0xFFFFFA);
+// }
+// static void _putcB(char c)
+// {
+//     if (c == '\n')
+//         newLine();
+//     else
+//         drawChar((uint64_t)(unsigned char)c, 0xFFFFFA);
+// }

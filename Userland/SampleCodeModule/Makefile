@@ -1,5 +1,5 @@
 include ../Makefile.inc
-GCCFLAGS += -I../include
+GCCFLAGS += -I../include -mno-sse -mno-sse2 -mno-avx
 
 MODULE=0000-sampleCodeModule.bin
 SOURCES=$(wildcard [^_]*.c)
