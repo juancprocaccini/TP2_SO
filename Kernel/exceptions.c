@@ -77,4 +77,8 @@ void exceptionDispatcher(int exception, uint64_t rsp) {
     }
 
     setCursorPosition(0, y_offset + 10);
+
+    while (1) {
+        // Loop infinito para mantener la pantalla de excepción
+    }
 }

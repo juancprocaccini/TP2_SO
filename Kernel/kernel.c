@@ -30,7 +30,18 @@ void * getStackBase() {
     );
 }
 
+static void loadModules(void);
+
 void * initializeKernelBinary() {
+    /*
+     * loadModules ANTES de clearBSS: los módulos appendeados por ModulePacker
+     * viven en memoria a partir de endOfKernelBinary (0x1056e0), solapando la
+     * región .bss (0x106000..0x115000). clearBSS zera esa región, así que hay
+     * que copiar los módulos a 0x400000 antes de destruir el origen, sino el
+     * binario de userland llega corrupto (todo lo que pase de ~2.3 KB queda en
+     * cero) y el proceso salta a basura -> #UD.
+     */
+    loadModules();
     clearBSS(&bss, &endOfKernel - &bss);
     return getStackBase();
 }
@@ -56,7 +67,6 @@ static int idle_process(char **argv, int argc) {
 }
 
 int main() {
-    loadModules();
     idtLoader();
     kbd_init();
     

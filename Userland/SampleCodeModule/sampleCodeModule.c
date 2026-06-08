@@ -7,7 +7,7 @@ int main(void) {
     newLine();
     drawString("Presiona teclas...", 0xFFFFFF);
     newLine();
-
+    
     while (1) {
         char c = kbdGetChar();
         if (c == 0) continue;
