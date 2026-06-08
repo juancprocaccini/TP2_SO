@@ -115,3 +115,5 @@ void scheduler_unschedule(PCB *p) {
 PCB *scheduler_get_running(void) {
     return running;
 }
+
+PCB *scheduler_get_shell(void) { return shell_pcb; }

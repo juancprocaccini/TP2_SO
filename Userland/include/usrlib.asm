@@ -4,10 +4,6 @@
 ;   rax = número de syscall  (ver syscalls.h en Kernel/include)
 ;   rdi = arg1, rsi = arg2, rdx = arg3, rcx = arg4, r8 = arg5, r9 = arg6
 ;   Valor de retorno en rax.
-;
-; TODO (TP2): cuando se implemente separación de privilegios, migrar a la
-;   instrucción 'syscall'. En ese caso arg4 deberá ir en r10 (rcx es
-;   destruido por el hardware al ejecutar syscall).
 
 global drawChar, drawString, putPixel, sys_fillRectangle
 global clearScreen, newLine, scrollDown
@@ -20,6 +16,15 @@ global secsToWait, getTime
 global vd_drawString, vd_drawIntAt
 global getScreenWidth, getScreenHeight
 
+; --- F4: Memoria ---
+global sys_malloc, sys_free, sys_mem_state
+
+; --- F4: Procesos ---
+global sys_create_process, sys_exit, sys_getpid, sys_yield
+global sys_waitpid, sys_kill, sys_nice
+global sys_block, sys_unblock, sys_get_status
+global sys_ps, sys_free_ps, sys_get_my_fds
+
 %macro SYSCALL 1
     mov rax, %1
     int 0x80
@@ -28,80 +33,109 @@ global getScreenWidth, getScreenHeight
 
 section .text
 
-; --- Video ---
-drawChar:
-    SYSCALL 1
+; ----------------------------------------------------------------
+; Video
+; ----------------------------------------------------------------
+drawChar:           SYSCALL 1
+drawString:         SYSCALL 2
+putPixel:           SYSCALL 3
+sys_fillRectangle:  SYSCALL 4
+clearScreen:        SYSCALL 7
+newLine:            SYSCALL 8
+scrollDown:         SYSCALL 9
+moveCursorLeft:     SYSCALL 10
+moveCursorRight:    SYSCALL 11
+deleteChar:         SYSCALL 12
+increaseFontSize:   SYSCALL 13
+decreaseFontSize:   SYSCALL 14
+vd_drawString:      SYSCALL 27
+vd_drawIntAt:       SYSCALL 28
+getScreenWidth:     SYSCALL 30
+getScreenHeight:    SYSCALL 31
 
-drawString:
-    SYSCALL 2
+; ----------------------------------------------------------------
+; Teclado
+; ----------------------------------------------------------------
+kbdGetChar:         SYSCALL 15
 
-putPixel:
-    SYSCALL 3
+; ----------------------------------------------------------------
+; Tiempo / RTC
+; ----------------------------------------------------------------
+getSeconds:         SYSCALL 16
+getMinutes:         SYSCALL 17
+getHours:           SYSCALL 18
+getDay:             SYSCALL 19
+getMonth:           SYSCALL 20
+getYear:            SYSCALL 21
+secsToWait:         SYSCALL 22
+getTime:            SYSCALL 23
 
-sys_fillRectangle:
-    SYSCALL 4
+; ----------------------------------------------------------------
+; Memoria (F4) — syscalls 32-34
+; ----------------------------------------------------------------
 
-clearScreen:
-    SYSCALL 7
+sys_malloc:         ; rdi=size → rax=ptr (user heap)
+    SYSCALL 32
 
-newLine:
-    SYSCALL 8
+sys_free:           ; rdi=ptr
+    SYSCALL 33
 
-scrollDown:
-    SYSCALL 9
+sys_mem_state:      ; rdi=uint64_t[6]*  → [u_tot,u_used,u_free, k_tot,k_used,k_free]
+    SYSCALL 34
 
-moveCursorLeft:
-    SYSCALL 10
+; ----------------------------------------------------------------
+; Procesos (F4) — syscalls 40-52
+; ----------------------------------------------------------------
 
-moveCursorRight:
-    SYSCALL 11
+sys_create_process:
+    ; rdi=entry, rsi=priority, rdx=argv, rcx=argc, r8=fds[3]*
+    ; El dispatcher recibe arg4 en rcx — convención int 0x80 estándar
+    SYSCALL 40
 
-deleteChar:
-    SYSCALL 12
+sys_exit:
+    ; rdi=status  — no retorna
+    SYSCALL 41
 
-increaseFontSize:
-    SYSCALL 13
+sys_getpid:
+    ; → rax=pid
+    SYSCALL 42
 
-decreaseFontSize:
-    SYSCALL 14
+sys_yield:
+    ; sin args, sin retorno útil
+    SYSCALL 43
 
-vd_drawString:
-    SYSCALL 27
+sys_waitpid:
+    ; rdi=pid, rsi=int* ret_out  → rax=pid_reapeado / -1
+    SYSCALL 44
 
-vd_drawIntAt:
-    SYSCALL 28
+sys_kill:
+    ; rdi=pid  → rax=0/-1
+    SYSCALL 45
 
-getScreenWidth:
-    SYSCALL 30
+sys_nice:
+    ; rdi=pid, rsi=new_priority  → rax=0/-1
+    SYSCALL 46
 
-getScreenHeight:
-    SYSCALL 31
+sys_block:
+    ; rdi=pid  → rax=0/-1
+    SYSCALL 47
 
-; --- Teclado ---
-kbdGetChar:
-    SYSCALL 15
+sys_unblock:
+    ; rdi=pid  → rax=0/-1
+    SYSCALL 48
 
-; --- Tiempo / RTC ---
-getSeconds:
-    SYSCALL 16
+sys_get_status:
+    ; rdi=pid  → rax=pstate_t / -1
+    SYSCALL 51
 
-getMinutes:
-    SYSCALL 17
+sys_ps:
+    ; rdi=ProcessInfoList**  → rax=0/-1
+    SYSCALL 49
 
-getHours:
-    SYSCALL 18
+sys_free_ps:
+    ; rdi=ProcessInfoList*
+    SYSCALL 50
 
-getDay:
-    SYSCALL 19
-
-getMonth:
-    SYSCALL 20
-
-getYear:
-    SYSCALL 21
-
-secsToWait:
-    SYSCALL 22
-
-getTime:
-    SYSCALL 23
+sys_get_my_fds:
+    ; rdi=int[3]*
+    SYSCALL 52

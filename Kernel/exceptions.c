@@ -26,7 +26,7 @@ static const char* register_names[] = {
 };
 
 // Convierte un uint64_t a cadena hexadecimal (formato "0xNNNNNNNNNNNNNNNN")
-static void uint64ToHexKernel(uint64_t value, char* buffer) {
+void uint64ToHexKernel(uint64_t value, char* buffer) {
     buffer[0] = '0';
     buffer[1] = 'x';
 
@@ -41,10 +41,30 @@ static void uint64ToHexKernel(uint64_t value, char* buffer) {
     buffer[18] = '\0';
 }
 
+void uint8ToHexKernel(uint8_t value, char *buffer)
+{
+    buffer[0] = '0';
+    buffer[1] = 'x';
+
+    for (int i = 1; i >= 0; i--)
+    {
+        uint8_t nibble = (value >> (i * 4)) & 0xF;
+        if (nibble < 10)
+        {
+            buffer[3 - i] = '0' + nibble;
+        }
+        else
+        {
+            buffer[3 - i] = 'A' + (nibble - 10);
+        }
+    }
+    buffer[4] = '\0';
+}
+
 void exceptionDispatcher(int exception, uint64_t rsp) {
     (void)rsp;
 
-    clearScreen();
+    //clearScreen();
 
     vd_drawString(0, 0, "*** EXCEPTION: ", 0xFF0000, 2);
 
@@ -76,5 +96,7 @@ void exceptionDispatcher(int exception, uint64_t rsp) {
         y_offset += 18;
     }
 
+    while (1);
+    
     setCursorPosition(0, y_offset + 10);
 }

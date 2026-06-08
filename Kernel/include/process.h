@@ -54,4 +54,6 @@ int   process_print_all(PCB *buf, int max);
 
 PCB * process_get(pid_t pid);
 
+pstate_t process_get_status(pid_t pid);
+
 #endif

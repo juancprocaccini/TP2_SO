@@ -4,6 +4,7 @@ GLOBAL _syscallHandler
 GLOBAL reg_snapshot
 GLOBAL snapshot_available
 GLOBAL pressed_key
+GLOBAL debug_marker
 
 EXTERN irqDispatcher
 EXTERN syscallDispatcher
@@ -59,6 +60,7 @@ _irq00Handler:
 
     mov al, 0x20
     out 0x20, al    ; EOI al Master PIC
+
     popState
     iretq
 
@@ -308,6 +310,7 @@ _syscallHandler:
     
     call syscallDispatcher
     
+
     ; El valor de retorno está en rax
     mov [rsp], rax
     
@@ -326,7 +329,7 @@ _syscallHandler:
     pop r14
     pop r15
     pop rbp
-    
+
     iretq
 
 ; Función para capturar registros desde el stack del syscall actual
@@ -434,3 +437,4 @@ SECTION .data
 SECTION .bss
     pressed_key resb 1
     reg_snapshot resq 18      ; Array para 18 registros (RAX-R15, RIP, RFLAGS)
+    debug_marker resb 8

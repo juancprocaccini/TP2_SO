@@ -50,36 +50,45 @@
 #define SYS_GET_SCREEN_WIDTH  30
 #define SYS_GET_SCREEN_HEIGHT 31
 
-/* ----------------------------------------------------------------
- * TODO (TP2): agregar los siguientes grupos de syscalls
- * ---------------------------------------------------------------- */
-
 /* --- Memoria --- */
-/* #define SYS_MEM_ALLOC    32 */
-/* #define SYS_MEM_FREE     33 */
-/* #define SYS_MEM_STATE    34 */
+#define SYS_MEM_ALLOC 32
+#define SYS_MEM_FREE 33
+#define SYS_MEM_STATE 34
 
 /* --- Procesos --- */
-/* #define SYS_CREATE_PROCESS  40 */
-/* #define SYS_EXIT            41 */
-/* #define SYS_GETPID          42 */
-/* #define SYS_YIELD           43 */
-/* #define SYS_WAIT            44 */
-/* #define SYS_KILL            45 */
-/* #define SYS_NICE            46 */
-/* #define SYS_BLOCK           47 */
+#define SYS_CREATE_PROCESS 40
+#define SYS_EXIT 41
+#define SYS_GETPID 42
+#define SYS_YIELD 43
+#define SYS_WAITPID 44
+#define SYS_KILL 45
+#define SYS_NICE 46
+#define SYS_BLOCK 47
+#define SYS_UNBLOCK 48
+#define SYS_PS 49
+#define SYS_FREE_PS 50
+#define SYS_GET_STATUS 51
+#define SYS_GET_MY_FDS 52
 
 /* --- Sincronización (semáforos) --- */
-/* #define SYS_SEM_CREATE  50 */
-/* #define SYS_SEM_OPEN    51 */
-/* #define SYS_SEM_WAIT    52 */
-/* #define SYS_SEM_POST    53 */
-/* #define SYS_SEM_CLOSE   54 */
+/* reservados F5 */
+#define SYS_SEM_OPEN 60
+#define SYS_SEM_OPEN_GET_ID 61
+#define SYS_SEM_WAIT 62
+#define SYS_SEM_POST 63
+#define SYS_SEM_CLOSE 64
 
 /* --- IPC (pipes) --- */
-/* #define SYS_PIPE_OPEN   60 */
-/* #define SYS_PIPE_READ   61 */
-/* #define SYS_PIPE_WRITE  62 */
-/* #define SYS_PIPE_CLOSE  63 */
+/* reservados F6 */
+#define SYS_PIPE_OPEN 70
+#define SYS_PIPE_OPEN_FREE 71
+#define SYS_PIPE_RESERVE 72
+#define SYS_PIPE_READ 73
+#define SYS_PIPE_WRITE 74
+#define SYS_PIPE_CLOSE 75
 
+/* --- FD abstraction --- */
+/* reservados F7 */
+#define SYS_READ 80
+#define SYS_WRITE 81
 #endif

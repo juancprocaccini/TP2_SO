@@ -8,6 +8,8 @@
 #include <defs.h>
 #include <process.h>
 #include <scheduler.h>
+#include "videoDriver.h"
+#include "exceptions.h"
 
 extern uint8_t bss;
 extern uint8_t endOfKernel;
