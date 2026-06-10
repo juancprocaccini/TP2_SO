@@ -84,13 +84,6 @@ uint64_t scheduler(uint64_t current_rsp)
         times_ran++;
     }
 
-    // 2. DEBUG: Si el proceso cambió, lo imprimimos
-    if (running != last_running)
-    {
-        debugPrintHex("Switch a RSP: ", running->rsp);
-        last_running = running;
-    }
-
     return running->rsp;
 }
 

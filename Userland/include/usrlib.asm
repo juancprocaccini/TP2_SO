@@ -116,6 +116,8 @@ secsToWait:
 getTime:
     SYSCALL 23
 
+; Memoria
+
 sys_mem_alloc:
     SYSCALL 32
 
@@ -124,6 +126,8 @@ sys_mem_free:
 
 sys_mem_state:
     SYSCALL 34
+
+; Procesos
 
 sys_create_process:
     SYSCALL 40
@@ -163,6 +167,8 @@ sys_get_status:
 
 sys_get_my_fds:
     SYSCALL 52
+
+; Semaforos
 
 sys_sem_open:
     SYSCALL 53

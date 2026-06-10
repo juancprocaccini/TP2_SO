@@ -7,11 +7,11 @@ int main(void) {
     
     clearScreen();
 
-    // Prueba 1: SIN semáforos (5 pares, 100 iteraciones, 0 = sin semaforos)
-    // test_sync(5, 100, 0);
+    //Prueba 1: SIN semáforos (5 pares, 100 iteraciones, 0 = sin semaforos)
+    test_sync(5, 100, 0);
 
-    // Prueba 2: CON semáforos (5 pares, 100 iteraciones, 1 = con semaforos)
-    // test_sync(5, 100, 1);
+    //Prueba 2: CON semáforos (5 pares, 100 iteraciones, 1 = con semaforos)
+    test_sync(5, 100, 1);
 
     while (1) {
         char c = kbdGetChar();
