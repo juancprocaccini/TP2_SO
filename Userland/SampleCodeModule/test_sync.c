@@ -1,122 +1,88 @@
 #include "usrlib.h"
-#include <stddef.h>
+#include "test_util.h"
 
-static int shared_var = 0;
+#define SEM_ID 1
+#define TOTAL_PAIR_PROCESSES 2
 
-static int my_atoi(const char *str)
+int64_t global;
+
+void slowInc(int64_t *p, int64_t inc)
 {
-    int res = 0;
-    int sign = 1;
-    if (*str == '-')
-    {
-        sign = -1;
-        str++;
-    }
-    while (*str >= '0' && *str <= '9')
-    {
-        res = res * 10 + (*str - '0');
-        str++;
-    }
-    return res * sign;
+    uint64_t aux = *p;
+    if (GetUniform(100) < 30)
+        yield();
+    aux += inc;
+    *p = aux;
 }
 
-int inc_process(int argc, char **argv)
+int my_process_inc(char *argv[], int argc)
 {
-    if (argc < 3)
+    uint64_t n;
+    int8_t inc;
+    int8_t use_sem;
+
+    if (argc != 3)
         return -1;
 
-    int iters = my_atoi(argv[1]);
-    int use_sem = my_atoi(argv[2]);
-    int sem_id = 1;
-
-    for (int i = 0; i < iters; i++)
-    {
-        if (use_sem)
-            sem_wait(sem_id); 
-
-        int temp = shared_var;
-        yield();
-        shared_var = temp + 1;
-
-        if (use_sem)
-            sem_post(sem_id); 
-    }
-    return 0;
-}
-
-int dec_process(int argc, char **argv)
-{
-    if (argc < 3)
+    if ((n = satoi(argv[0])) <= 0)
         return -1;
-
-    int iters = my_atoi(argv[1]);
-    int use_sem = my_atoi(argv[2]);
-    int sem_id = 1;
-
-    for (int i = 0; i < iters; i++)
-    {
-        if (use_sem)
-            sem_wait(sem_id);
-
-        int temp = shared_var;
-        yield();
-        shared_var = temp - 1;
-
-        if (use_sem)
-            sem_post(sem_id);
-    }
-    return 0;
-}
-
-void test_sync(int pairs, int iterations, int use_sem)
-{
-    shared_var = 0;
-    int sem_id = 1;
-
-    shell_print("==============================", 0xFFFFFF);
-    if (use_sem)
-    {
-        shell_print("MODO: CON Semaforos", 0x00FF00);
-        sem_open(sem_id, 1);
-    }
-    else
-    {
-        shell_print("MODO: SIN Semaforos", 0xFF0000);
-    }
-
-    int pids[100];
-
-    char iters_str[16];
-    char use_sem_str[2];
-    intToString(iterations, iters_str);
-    intToString(use_sem, use_sem_str);
-
-    char *argv_inc[] = {"inc_worker", iters_str, use_sem_str};
-    char *argv_dec[] = {"dec_worker", iters_str, use_sem_str};
-
-    for (int i = 0; i < pairs; i++)
-    {
-        pids[i * 2] = create_process((void *)inc_process, 1, 1, argv_inc, 3, NULL);
-        pids[i * 2 + 1] = create_process((void *)dec_process, 1, 1, argv_dec, 3, NULL);
-    }
-
-    shell_print("Esperando procesos...", 0xFFFFFF);
-
-    for (int i = 0; i < pairs * 2; i++)
-    {
-        int status;
-        waitpid(pids[i], &status);
-    }
+    if ((inc = satoi(argv[1])) == 0)
+        return -1;
+    if ((use_sem = satoi(argv[2])) < 0)
+        return -1;
 
     if (use_sem)
     {
-        sem_close(sem_id);
+        if (sem_open(SEM_ID, 1) < 0)
+        {
+            printf("test_sync: ERROR opening semaphore\n");
+            return -1;
+        }
     }
 
-    shell_print("Valor final:", 0xFFFFFF);
-    char result_str[16];
-    intToString(shared_var, result_str);
+    uint64_t i;
+    for (i = 0; i < n; i++)
+    {
+        if (use_sem)
+            sem_wait(SEM_ID);
+        slowInc(&global, inc);
+        if (use_sem)
+            sem_post(SEM_ID);
+    }
 
-    shell_print(result_str, (shared_var == 0) ? 0x00FF00 : 0xFF0000);
-    shell_print("==============================", 0xFFFFFF);
+    if (use_sem)
+        sem_close(SEM_ID);
+
+    return 0;
+}
+
+int test_sync(char *argv[], int argc)
+{
+    uint64_t pids[2 * TOTAL_PAIR_PROCESSES];
+    int fds[3] = {0, 1, 2};
+
+    if (argc != 2)
+        return -1;
+
+    char *argvDec[] = {argv[0], "-1", argv[1], 0};
+    char *argvInc[] = {argv[0], "1", argv[1], 0};
+
+    global = 0;
+
+    uint64_t i;
+    for (i = 0; i < TOTAL_PAIR_PROCESSES; i++)
+    {
+        pids[i] = create_process(my_process_inc, U_MEDIUM, 1, argvDec, 3, fds);
+        pids[i + TOTAL_PAIR_PROCESSES] = create_process(my_process_inc, U_MEDIUM, 1, argvInc, 3, fds);
+    }
+
+    for (i = 0; i < TOTAL_PAIR_PROCESSES; i++)
+    {
+        waitpid(pids[i], 0);
+        waitpid(pids[i + TOTAL_PAIR_PROCESSES], 0);
+    }
+
+    printf("Final value: %d\n", (int)global);
+
+    return 0;
 }

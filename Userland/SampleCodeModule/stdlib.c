@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include "usrlib.h"
+#include <stdarg.h>
 
 /* --- Llamadas a ASM --- */
 
@@ -110,6 +111,79 @@ void cmd_mem()
 
     shell_print("=== USER HEAP ===", 0xFFFFFF);
     // ... imprimís stats[1].total, stats[1].used, etc ...
+}
+
+void kprintf(const char *fmt, ...)
+{
+    va_list args;
+    va_start(args, fmt);
+
+    char buf[32]; // Buffer temporal para conversiones numéricas
+
+    while (*fmt != '\0')
+    {
+        if (*fmt == '%')
+        {
+            fmt++; // Avanzamos para ver el especificador
+            switch (*fmt)
+            {
+            case 'd':
+            {
+                int val = va_arg(args, int);
+                intToString(val, buf);
+                drawString(buf, 0xFFFFFF); // Color blanco por defecto
+                break;
+            }
+            case 'x':
+            case 'X':
+            {
+                uint64_t val = va_arg(args, uint64_t);
+                uint64ToHex(val, buf);
+                drawString(buf, 0xFFFFFF);
+                break;
+            }
+            case 's':
+            {
+                char *str = va_arg(args, char *);
+                if (str != 0)
+                {
+                    drawString(str, 0xFFFFFF);
+                }
+                else
+                {
+                    drawString("(null)", 0xFFFFFF);
+                }
+                break;
+            }
+            case 'c':
+            {
+                char ch = (char)va_arg(args, int);
+                drawChar(ch, 0xFFFFFF);
+                break;
+            }
+            case '%':
+            {
+                drawChar('%', 0xFFFFFF);
+                break;
+            }
+            default: // Si es un formato no soportado, imprimimos ambos caracteres
+                drawChar('%', 0xFFFFFF);
+                drawChar(*fmt, 0xFFFFFF);
+                break;
+            }
+        }
+        else if (*fmt == '\n')
+        {
+            newLine();
+        }
+        else
+        {
+            drawChar(*fmt, 0xFFFFFF);
+        }
+        fmt++;
+    }
+
+    va_end(args);
 }
 
 /* --- Procesos --- */

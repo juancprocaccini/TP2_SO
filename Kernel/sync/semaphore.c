@@ -4,11 +4,13 @@
 #include "scheduler.h"
 #include "queue.h"
 #include <stddef.h>
+#include "videoDriver.h"
+#include "atomic.h"
 
 typedef struct
 {
     uint64_t value;
-    uint8_t lock;       /* xchg-based spinlock */
+    uint64_t lock;       /* xchg-based spinlock */
     uint8_t open_count; /* 0 = slot free */
     queue_t *waiters;   /* FIFO de PCB* usando tu queue.c */
 } sem_t;
@@ -18,9 +20,10 @@ static sem_t sems[SEM_KERNEL_MAX];
 // Declaramos las funciones de Assembly para manejar interrupciones
 extern void _cli(void);
 extern void _sti(void);
-extern uint8_t atomic_xchg(uint8_t *lock, uint8_t val);
 
-static void acquire(uint8_t *lock)
+
+
+static void acquire(uint64_t *lock)
 {
     while (atomic_xchg(lock, 1) != 0)
     {
@@ -28,7 +31,7 @@ static void acquire(uint8_t *lock)
     }
 }
 
-static void release(uint8_t *lock)
+static void release(uint64_t *lock)
 {
     atomic_xchg(lock, 0);
 }
@@ -105,6 +108,7 @@ int ksem_wait(int id)
 
     if (sem->open_count == 0)
     {
+
         release(&sem->lock);
         _sti();
         return -1;

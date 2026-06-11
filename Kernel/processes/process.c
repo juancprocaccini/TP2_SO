@@ -10,6 +10,7 @@ PCB pcbs[MAX_PROCESSES];
 
 extern void _cli(void);
 extern void timer_tick(void);
+extern void _sti(void);
 
 extern PCB *scheduler_get_running(void);
 extern void scheduler_unschedule(PCB *p);
@@ -53,8 +54,6 @@ static void free_argv_copy(char **argv_copy, int count) {
 void process_wrapper(entry_t rip, char **argv, int argc, pid_t pid)
 {
     int ret;
-
-    // Usamos assembly para forzar un salto limpio a 0x400000.
     // "D" asigna argc directo a RDI, "S" asigna argv a RSI, "=a" recupera EAX (retorno)
     __asm__ volatile(
         "call *%3"
@@ -234,6 +233,7 @@ int process_block(pid_t pid) {
 
     _cli();
     scheduler_block(p);
+    _sti();
     return 0;
 }
 
@@ -254,6 +254,7 @@ int process_unblock(pid_t pid) {
 
     _cli();
     scheduler_ready(p);
+    _sti();
     return 0;
 }
 

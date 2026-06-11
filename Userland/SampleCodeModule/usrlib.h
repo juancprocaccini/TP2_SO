@@ -45,6 +45,7 @@ void getTimeString(char* buffer);
 void getDateString(char* buffer);
 void intToString(int value, char* buffer);
 void uint64ToHex(uint64_t value, char* buffer);
+void kprintf(const char *fmt, ...);
 
 /* --- Memoria --- */
 typedef struct
