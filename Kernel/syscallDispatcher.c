@@ -1,4 +1,5 @@
 #include "syscalls.h"
+#include "defs.h"
 #include <stdint.h>
 #include <stddef.h>
 #include "videoDriver.h"
@@ -161,6 +162,8 @@ uint64_t syscallDispatcher(uint64_t syscall_num, uint64_t arg1, uint64_t arg2,
         case SYS_SEM_CLOSE:
             return (uint64_t)ksem_close((int)arg1);
 
+            /* --- Pipes --- */
+
         case SYS_PIPE_OPEN:
             // Traduce el fd de entrada (id + 3) a ID interno del arreglo de pipes
             return (uint64_t)pipe_open((int)arg1 - 3, (int)arg2);
@@ -186,6 +189,39 @@ uint64_t syscallDispatcher(uint64_t syscall_num, uint64_t arg1, uint64_t arg2,
 
         case SYS_PIPE_CLOSE:
             return (uint64_t)pipe_close((int)arg1 - 3, scheduler_get_running()->pid);
+
+        /* --- I/O por fd (F7) --- */
+        case SYS_READ:
+        {
+            /* arg1=buf, arg2=n — lee fds[STDIN] del proceso corriendo */
+            PCB *running = scheduler_get_running();
+            int fd = running->fds[FD_STDIN];
+            if (fd < 0) return 0;                                   /* stdin cerrado → EOF */
+            if (fd <= 2) return (uint64_t)stdin_read((char *)arg1, (int)arg2);
+            return (uint64_t)pipe_read(fd - 3, (char *)arg1, (int)arg2);
+        }
+
+        case SYS_WRITE:
+        {
+            /* arg1=stream_idx(0/1/2), arg2=buf, arg3=n */
+            int idx = (int)arg1;
+            if (idx < 0 || idx > 2) return (uint64_t)-1;
+            PCB *running = scheduler_get_running();
+            int fd = running->fds[idx];
+            char *buf = (char *)arg2;
+            int n = (int)arg3;
+            if (fd < 0) return (uint64_t)n;                         /* fd cerrado → descartar */
+            if (fd <= 2) {
+                for (int i = 0; i < n; i++) {
+                    char c = buf[i];
+                    if (c == '\n') newLine();
+                    else if (c == '\b') deleteChar();
+                    else vPutChar((uint64_t)(unsigned char)c, 0xFFFFFF);
+                }
+                return (uint64_t)n;
+            }
+            return (uint64_t)pipe_write(fd - 3, buf, n);
+        }
 
         default:
             return -1;

@@ -34,6 +34,9 @@ global sys_sem_open, sys_sem_open_get_id, sys_sem_wait, sys_sem_post, sys_sem_cl
 global sys_pipe_open, sys_pipe_open_free, sys_pipe_reserve
 global sys_pipe_read, sys_pipe_write, sys_pipe_close
 
+; I/O por fd (F7)
+global sys_read, sys_write
+
 %macro SYSCALL 1
     mov rax, %1
     int 0x80
@@ -208,3 +211,11 @@ sys_pipe_write:
 
 sys_pipe_close:
     SYSCALL 63
+
+; --- I/O por fd (F7) ---
+
+sys_read:
+    SYSCALL 64
+
+sys_write:
+    SYSCALL 65

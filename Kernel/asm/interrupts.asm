@@ -305,10 +305,13 @@ _syscallHandler:
     mov rcx, [rsp+24]    ; arg3 (rdx original)
     mov r8,  [rsp+16]    ; arg4 (rcx original)
     mov r9,  [rsp+48]    ; arg5 (r8 original)
-    ; arg6 (r9 original) iría en el stack como 7mo parámetro si fuera necesario
-    
+    ; arg6 = r9 original, está en [rsp+56]. SysV AMD64: 7mo param va en el stack.
+    push qword [rsp+56]
+
     call syscallDispatcher
-    
+
+    add rsp, 8           ; limpiar el arg6 pusheado
+
     ; El valor de retorno está en rax
     mov [rsp], rax
     

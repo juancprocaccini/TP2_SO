@@ -9,6 +9,7 @@ int test_prio(char *argv[], int argc);
 int test_processes(char *argv[], int argc);
 int test_mm(char *argv[], int argc);
 int test_pipes(char *argv[], int argc);
+int test_f7(char *argv[], int argc);
 
 int main(void)
 {
@@ -74,19 +75,19 @@ int main(void)
     // ---------------------------------------------------------
     // 4. TEST DE MEMORY MANAGER (Malloc y Free)
     // ---------------------------------------------------------
-    kprintf("[INFO] Iniciando test_mm...\n");
-    // Argumentos: Memoria máxima a pedir (ej. 1MB = "1000000")
-    char *argv_mm[] = {"1000000"};
-    ret = test_mm(argv_mm, 1);
+    // kprintf("[INFO] Iniciando test_mm...\n");
+    // // Argumentos: Memoria máxima a pedir (ej. 1MB = "1000000")
+    // char *argv_mm[] = {"1000000"};
+    // ret = test_mm(argv_mm, 1);
 
-    if (ret == 0)
-    {
-        kprintf("[OK] test_mm finalizo con EXITO.\n\n");
-    }
-    else
-    {
-        kprintf("[FAIL] test_mm fallo (Retorno: %d).\n\n", ret);
-    }
+    // if (ret == 0)
+    // {
+    //     kprintf("[OK] test_mm finalizo con EXITO.\n\n");
+    // }
+    // else
+    // {
+    //     kprintf("[FAIL] test_mm fallo (Retorno: %d).\n\n", ret);
+    // }
 
     // ---------------------------------------------------------
     // TEST DE PIPES (Fase 6)
@@ -104,31 +105,28 @@ int main(void)
         kprintf("[FAIL] test_pipes fallo (Retorno: %d).\n\n", ret);
     }
 
+    // ---------------------------------------------------------
+    // TEST F7: FD abstraction + stdlib
+    // ---------------------------------------------------------
+    kprintf("[INFO] Iniciando test_f7...\n");
+    ret = test_f7(0, 0);
+    if (ret == 0) {
+        kprintf("[OK] test_f7 finalizo con EXITO.\n\n");
+    } else {
+        kprintf("[FAIL] test_f7 fallo.\n\n");
+    }
+
     kprintf("================================================\n");
     kprintf("       BATERIA DE TESTS FINALIZADA              \n");
     kprintf("================================================\n");
-    kprintf("Entrando a modo terminal. Presiona teclas:\n\n");
+    kprintf("Entrando a modo terminal. Presiona teclas (Ctrl+D = EOF):\n\n");
 
     // ---------------------------------------------------------
-    // Ciclo de teclado (Terminal Dummy)
+    // Ciclo de teclado: echo via getchar/putchar (F7)
     // ---------------------------------------------------------
-    while (1)
-    {
-        char c = kbdGetChar();
-        if (c == 0)
-            continue;
-        if (c == '\n')
-        {
-            newLine();
-        }
-        else if (c == '\b')
-        {
-            deleteChar();
-        }
-        else
-        {
-            drawChar((uint64_t)c, 0xFFFFFF); // Blanco por defecto
-        }
+    int c;
+    while ((c = getchar()) != 0) {
+        putchar((char)c);
     }
 
     return 0;

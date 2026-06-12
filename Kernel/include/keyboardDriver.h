@@ -29,4 +29,7 @@ uint32_t kbd_read_chars(char* buffer, uint32_t max_chars);
 uint32_t kbd_available_chars(void);
 void     kbd_clear_buffer(void);
 
+// Lectura bloqueante (F7): bloquea el proceso hasta que haya input
+int stdin_read(char *buf, int n);
+
 #endif

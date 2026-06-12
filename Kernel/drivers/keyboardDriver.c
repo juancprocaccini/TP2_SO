@@ -1,6 +1,10 @@
 #include "keyboardDriver.h"
+#include "scheduler.h"
 #include <stdint.h>
 #include <stddef.h>
+
+extern void _cli(void);
+extern void _sti(void);
 
 // Scancodes de teclas modificadoras
 #define L_SHIFT_SCANCODE    0x2A
@@ -13,6 +17,9 @@ static char kbd_buffer[256];
 static size_t kbd_buffer_start = 0;
 static size_t kbd_buffer_end   = 0;
 static size_t kbd_buffer_count = 0;
+
+/* Proceso bloqueado esperando input de teclado (NULL si nadie espera) */
+static PCB *kbd_waiting_pcb = NULL;
 
 static uint8_t extended_scancode = 0;
 
@@ -53,10 +60,21 @@ static const char kbd_shift_ascii_table[128] = {
 // --- Buffer circular ---
 
 static void kbd_buffer_put(char c) {
-    if (kbd_buffer_count < sizeof(kbd_buffer) && c != 0) {
+    /* Permitimos c==0 (EOF vía Ctrl+D); el filtro original excluía null chars
+     * de teclas sin mapeo, pero esos nunca llegan acá porque kbd_handler
+     * los descarta antes. El 0 se inyecta sólo desde Ctrl+D. */
+    if (kbd_buffer_count < sizeof(kbd_buffer)) {
         kbd_buffer[kbd_buffer_end] = c;
         kbd_buffer_end = (kbd_buffer_end + 1) % sizeof(kbd_buffer);
         kbd_buffer_count++;
+    }
+}
+
+static void kbd_wake_waiter(void) {
+    if (kbd_waiting_pcb != NULL) {
+        PCB *p = kbd_waiting_pcb;
+        kbd_waiting_pcb = NULL;
+        scheduler_ready(p);
     }
 }
 
@@ -124,9 +142,17 @@ void kbd_handler(uint8_t scancode) {
         return;
     }
 
+    /* Ctrl+D → inyectar byte 0 (EOF) y despertar al proceso que espera stdin */
+    if (kbd_ctrl_pressed && key_code == 0x20) {  /* 0x20 = scancode de 'd' */
+        kbd_buffer_put(0);
+        kbd_wake_waiter();
+        return;
+    }
+
     char letra = get_char_with_modifiers(key_code);
     if (letra != 0) {
         kbd_buffer_put(letra);
+        kbd_wake_waiter();
     }
 }
 
@@ -154,4 +180,40 @@ uint32_t kbd_read_chars(char* buffer, uint32_t max_chars) {
         chars_read++;
     }
     return chars_read;
+}
+
+/*
+ * stdin_read — lectura bloqueante de teclado.
+ * Bloquea el proceso si el buffer está vacío, se despierta cuando llega un char.
+ * Lee hasta n bytes. Se detiene antes si llega '\n' o EOF (byte 0).
+ * Retorna 0 si el primer carácter fue EOF (Ctrl+D), count en cualquier otro caso.
+ */
+int stdin_read(char *buf, int n) {
+    if (n <= 0) return 0;
+
+    /* Bloquear hasta que haya al menos un carácter */
+    while (1) {
+        _cli();
+        if (kbd_buffer_count > 0) {
+            _sti();
+            break;
+        }
+        kbd_waiting_pcb = scheduler_get_running();
+        scheduler_block_no_yield(kbd_waiting_pcb);
+        _sti();
+        scheduler_yield();
+    }
+
+    /* Leer hasta n bytes, parando en newline o EOF */
+    int count = 0;
+    while (count < n) {
+        _cli();
+        if (kbd_buffer_count == 0) { _sti(); break; }
+        char c = kbd_buffer_get();
+        _sti();
+        if (c == 0) break;      /* EOF: devolver lo acumulado (0 si es el primer char) */
+        buf[count++] = c;
+        if (c == '\n') break;
+    }
+    return count;
 }

@@ -43,12 +43,22 @@ extern void secsToWait(int seconds);
 
 /* --- Utilidades (usrlib.c) --- */
 int strcmp(const char* str1, const char* str2);
+int strlen(const char *s);
+int strncasecmp(const char *s1, const char *s2, int n);
 void shell_print(char* str, uint32_t color);
 void getTimeString(char* buffer);
 void getDateString(char* buffer);
 void intToString(int value, char* buffer);
 void uint64ToHex(uint64_t value, char* buffer);
 void kprintf(const char *fmt, ...);
+
+/* --- I/O por fd (F7) --- */
+int getchar(void);
+void putchar(char c);
+char *gets(char *buf);
+void puts(const char *s);
+int printf(const char *fmt, ...);
+int fprintf(int fd, const char *fmt, ...);
 
 /* --- Memoria --- */
 typedef struct

@@ -7,6 +7,8 @@
 extern void sys_mem_state(MemStats *stats);
 extern void *sys_mem_alloc(uint64_t size);
 extern void sys_mem_free(void *ptr);
+extern int sys_read(char *buf, int n);
+extern int sys_write(int fd, const char *buf, int n);
 extern int sys_create_process(uint64_t entry, int pri, int killable, char **argv, int argc, int *fds);
 extern void sys_exit(int status);
 extern int sys_getpid(void);
@@ -45,6 +47,34 @@ int strcmp(const char* str1, const char* str2) {
         str2++;
     }
     return (unsigned char)(*str1) - (unsigned char)(*str2);
+}
+
+int strlen(const char *s) {
+    int n = 0;
+    while (*s++) n++;
+    return n;
+}
+
+int strncasecmp(const char *s1, const char *s2, int n) {
+    while (n-- > 0) {
+        char a = *s1++, b = *s2++;
+        if (a >= 'A' && a <= 'Z') a += 32;
+        if (b >= 'A' && b <= 'Z') b += 32;
+        if (a != b) return (unsigned char)a - (unsigned char)b;
+        if (a == 0) return 0;
+    }
+    return 0;
+}
+
+int satoi(const char *str, int *ok) {
+    int val = 0, neg = 0;
+    if (ok) *ok = 1;
+    if (!str || !*str) { if (ok) *ok = 0; return 0; }
+    if (*str == '-') { neg = 1; str++; }
+    if (!*str) { if (ok) *ok = 0; return 0; }
+    while (*str >= '0' && *str <= '9') val = val * 10 + (*str++ - '0');
+    if (*str && ok) *ok = 0;
+    return neg ? -val : val;
 }
 
 void shell_print(char* str, uint32_t color) {
@@ -190,6 +220,102 @@ void kprintf(const char *fmt, ...)
     }
 
     va_end(args);
+}
+
+/* --- I/O por fd (F7) --- */
+
+int getchar(void) {
+    char c;
+    if (sys_read(&c, 1) == 0) return 0;    /* EOF (Ctrl+D) */
+    return (unsigned char)c;
+}
+
+void putchar(char c) {
+    sys_write(1, &c, 1);    /* FD_STDOUT = stream index 1 */
+}
+
+char *gets(char *buf) {
+    int i = 0;
+    int c;
+    while ((c = getchar()) != '\n' && c != 0) {
+        buf[i++] = (char)c;
+    }
+    buf[i] = '\0';
+    return buf;
+}
+
+void puts(const char *s) {
+    while (*s) putchar(*s++);
+    putchar('\n');
+}
+
+/* Formatea fmt+args a out[0..max-1], retorna bytes escritos (sin el '\0') */
+static int vfmt(char *out, int max, const char *fmt, va_list args) {
+    int pos = 0;
+    char tmp[32];
+
+    while (*fmt && pos < max - 1) {
+        if (*fmt != '%') {
+            out[pos++] = *fmt++;
+            continue;
+        }
+        fmt++;
+        switch (*fmt) {
+        case 'd': {
+            int val = va_arg(args, int);
+            intToString(val, tmp);
+            for (int i = 0; tmp[i] && pos < max - 1; i++) out[pos++] = tmp[i];
+            break;
+        }
+        case 'x': case 'X': {
+            uint64_t val = va_arg(args, uint64_t);
+            uint64ToHex(val, tmp);
+            for (int i = 0; tmp[i] && pos < max - 1; i++) out[pos++] = tmp[i];
+            break;
+        }
+        case 's': {
+            char *s = va_arg(args, char *);
+            if (!s) s = "(null)";
+            while (*s && pos < max - 1) out[pos++] = *s++;
+            break;
+        }
+        case 'c': {
+            char c = (char)va_arg(args, int);
+            if (pos < max - 1) out[pos++] = c;
+            break;
+        }
+        case '%':
+            if (pos < max - 1) out[pos++] = '%';
+            break;
+        default:
+            if (pos < max - 1) out[pos++] = '%';
+            if (pos < max - 1) out[pos++] = *fmt;
+            break;
+        }
+        fmt++;
+    }
+    out[pos] = '\0';
+    return pos;
+}
+
+int fprintf(int fd, const char *fmt, ...) {
+    char buf[512];
+    va_list args;
+    va_start(args, fmt);
+    int n = vfmt(buf, sizeof(buf), fmt, args);
+    va_end(args);
+    if (n > 0) sys_write(fd, buf, n);
+    return n;
+}
+
+int printf(const char *fmt, ...) {
+    char buf[512];
+    va_list args;
+    va_start(args, fmt);
+    int n = vfmt(buf, sizeof(buf), fmt, args);
+    va_end(args);
+    if (n > 0) sys_write(1, buf, n);    /* FD_STDOUT */
+    return n;
 }
 
 /* --- Procesos --- */
