@@ -137,17 +137,6 @@ void intToString(int value, char* buffer) {
     buffer[j] = '\0';
 }
 
-void cmd_mem()
-{
-    MemStats stats[2];
-    sys_mem_state(stats); // Llamada a la syscall en ASM
-
-    shell_print("=== KERNEL HEAP ===", 0xFFFFFF);
-    // ... imprimís stats[0].total, stats[0].used, etc ...
-
-    shell_print("=== USER HEAP ===", 0xFFFFFF);
-    // ... imprimís stats[1].total, stats[1].used, etc ...
-}
 
 void kprintf(const char *fmt, ...)
 {
@@ -238,8 +227,14 @@ char *gets(char *buf) {
     int i = 0;
     int c;
     while ((c = getchar()) != '\n' && c != 0) {
-        buf[i++] = (char)c;
+        if (c == '\b') {
+            if (i > 0) { i--; deleteChar(); }
+        } else {
+            buf[i++] = (char)c;
+            putchar((char)c);
+        }
     }
+    putchar('\n');   /* avanzar a la siguiente línea (Enter o EOF) */
     buf[i] = '\0';
     return buf;
 }
@@ -249,7 +244,8 @@ void puts(const char *s) {
     putchar('\n');
 }
 
-/* Formatea fmt+args a out[0..max-1], retorna bytes escritos (sin el '\0') */
+/* Formatea fmt+args a out[0..max-1], retorna bytes escritos (sin el '\0').
+ * Soporta: %[-][N]d  %[-][N]s  %[-][N]x  %c  %% */
 static int vfmt(char *out, int max, const char *fmt, va_list args) {
     int pos = 0;
     char tmp[32];
@@ -259,38 +255,64 @@ static int vfmt(char *out, int max, const char *fmt, va_list args) {
             out[pos++] = *fmt++;
             continue;
         }
-        fmt++;
+        fmt++;  /* salta '%' */
+
+        /* flag de alineación */
+        int left = 0;
+        if (*fmt == '-') { left = 1; fmt++; }
+
+        /* ancho mínimo */
+        int width = 0;
+        while (*fmt >= '0' && *fmt <= '9') width = width * 10 + (*fmt++ - '0');
+
+        const char *s;
+        int slen;
+
         switch (*fmt) {
         case 'd': {
             int val = va_arg(args, int);
             intToString(val, tmp);
-            for (int i = 0; tmp[i] && pos < max - 1; i++) out[pos++] = tmp[i];
+            s = tmp; slen = strlen(s);
             break;
         }
         case 'x': case 'X': {
             uint64_t val = va_arg(args, uint64_t);
             uint64ToHex(val, tmp);
-            for (int i = 0; tmp[i] && pos < max - 1; i++) out[pos++] = tmp[i];
+            s = tmp; slen = strlen(s);
             break;
         }
         case 's': {
-            char *s = va_arg(args, char *);
-            if (!s) s = "(null)";
-            while (*s && pos < max - 1) out[pos++] = *s++;
+            char *sp = va_arg(args, char *);
+            s = sp ? sp : "(null)";
+            slen = strlen(s);
             break;
         }
         case 'c': {
-            char c = (char)va_arg(args, int);
-            if (pos < max - 1) out[pos++] = c;
+            tmp[0] = (char)va_arg(args, int);
+            tmp[1] = '\0';
+            s = tmp; slen = 1;
             break;
         }
         case '%':
             if (pos < max - 1) out[pos++] = '%';
-            break;
+            fmt++;
+            continue;
         default:
             if (pos < max - 1) out[pos++] = '%';
             if (pos < max - 1) out[pos++] = *fmt;
-            break;
+            fmt++;
+            continue;
+        }
+
+        /* padding a la izquierda (alineación derecha) */
+        if (!left) {
+            for (int i = slen; i < width && pos < max - 1; i++) out[pos++] = ' ';
+        }
+        /* valor */
+        for (int i = 0; s[i] && pos < max - 1; i++) out[pos++] = s[i];
+        /* padding a la derecha (alineación izquierda) */
+        if (left) {
+            for (int i = slen; i < width && pos < max - 1; i++) out[pos++] = ' ';
         }
         fmt++;
     }
