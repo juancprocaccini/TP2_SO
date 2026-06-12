@@ -25,6 +25,12 @@ extern int sys_sem_open_get_id(uint64_t initial);
 extern int sys_sem_wait(int id);
 extern int sys_sem_post(int id);
 extern int sys_sem_close(int id);
+extern int sys_pipe_open(int fd, int mode);
+extern int sys_pipe_open_free(int mode);
+extern int sys_pipe_reserve(void);
+extern int sys_pipe_read(int fd, char *buf, int n);
+extern int sys_pipe_write(int fd, const char *buf, int n);
+extern int sys_pipe_close(int fd);
 
 /* --- Utilidad General --- */
 
@@ -246,4 +252,36 @@ int sem_post(int id)
 int sem_close(int id)
 {
     return sys_sem_close(id);
+}
+
+/* --- Pipes --- */
+
+int pipe_open(int fd, int mode)
+{
+    return sys_pipe_open(fd, mode);
+}
+
+int pipe_open_free(int mode)
+{
+    return sys_pipe_open_free(mode);
+}
+
+int pipe_reserve(void)
+{
+    return sys_pipe_reserve();
+}
+
+int pipe_read(int fd, char *buf, int n)
+{
+    return sys_pipe_read(fd, buf, n);
+}
+
+int pipe_write(int fd, const char *buf, int n)
+{
+    return sys_pipe_write(fd, buf, n);
+}
+
+int pipe_close(int fd)
+{
+    return sys_pipe_close(fd);
 }

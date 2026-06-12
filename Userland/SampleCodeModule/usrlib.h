@@ -1,6 +1,9 @@
 #ifndef USRLIB_H
 #define USRLIB_H
 
+#define READER 0
+#define WRITER 1
+
 #include <stdint.h>
 
 
@@ -116,5 +119,12 @@ int sem_wait(int id);
 int sem_post(int id);
 int sem_close(int id);
 
+/* --- Pipes --- */
+int pipe_open(int fd, int mode);
+int pipe_open_free(int mode);
+int pipe_reserve(void);
+int pipe_read(int fd, char *buf, int n);
+int pipe_write(int fd, const char *buf, int n);
+int pipe_close(int fd);
 #endif
 

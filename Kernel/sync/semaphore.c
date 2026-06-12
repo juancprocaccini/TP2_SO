@@ -76,6 +76,27 @@ int ksem_open(int id, uint64_t initial)
     return id;
 }
 
+int ksem_open_kernel_side(int id, uint64_t initial)
+{
+    // Validamos estrictamente contra el rango de KERNEL (id >= 100)
+    if (!is_valid_id(id, 1))
+        return -1;
+
+    _cli(); // Protegemos la región crítica
+    acquire(&sems[id].lock);
+
+    if (sems[id].open_count == 0)
+    {
+        sems[id].value = initial;
+    }
+    sems[id].open_count++;
+
+    release(&sems[id].lock);
+    _sti();
+
+    return id;
+}
+
 int ksem_open_get_id(uint64_t initial)
 {
     _cli();

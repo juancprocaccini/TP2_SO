@@ -30,6 +30,10 @@ global sys_get_status, sys_get_my_fds
 ; De Semáforos
 global sys_sem_open, sys_sem_open_get_id, sys_sem_wait, sys_sem_post, sys_sem_close
 
+; De Pipes
+global sys_pipe_open, sys_pipe_open_free, sys_pipe_reserve
+global sys_pipe_read, sys_pipe_write, sys_pipe_close
+
 %macro SYSCALL 1
     mov rax, %1
     int 0x80
@@ -184,3 +188,23 @@ sys_sem_post:
 
 sys_sem_close:
     SYSCALL 57
+
+; --- Pipes ---
+
+sys_pipe_open:
+    SYSCALL 58
+
+sys_pipe_open_free:
+    SYSCALL 59
+
+sys_pipe_reserve:
+    SYSCALL 60
+
+sys_pipe_read:
+    SYSCALL 61
+
+sys_pipe_write:
+    SYSCALL 62
+
+sys_pipe_close:
+    SYSCALL 63

@@ -9,6 +9,7 @@
 #include "process.h"
 #include "scheduler.h"
 #include "semaphore.h"
+#include "pipe.h"
 
 extern uint8_t bss;
 extern uint8_t endOfKernel;
@@ -72,6 +73,7 @@ int main() {
 
     scheduler_init(shell_pid, idle_pid);
     ksem_init();
+    pipe_init();
 
     _sti();
 

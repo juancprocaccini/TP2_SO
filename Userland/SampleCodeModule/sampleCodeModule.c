@@ -8,6 +8,7 @@ int test_sync(char *argv[], int argc);
 int test_prio(char *argv[], int argc);
 int test_processes(char *argv[], int argc);
 int test_mm(char *argv[], int argc);
+int test_pipes(char *argv[], int argc);
 
 int main(void)
 {
@@ -85,6 +86,22 @@ int main(void)
     else
     {
         kprintf("[FAIL] test_mm fallo (Retorno: %d).\n\n", ret);
+    }
+
+    // ---------------------------------------------------------
+    // TEST DE PIPES (Fase 6)
+    // ---------------------------------------------------------
+    kprintf("[INFO] Iniciando test_pipes...\n");
+    char *argv_pipes[] = {0};
+    ret = test_pipes(argv_pipes, 0);
+
+    if (ret == 0)
+    {
+        kprintf("[OK] test_pipes finalizo con EXITO.\n\n");
+    }
+    else
+    {
+        kprintf("[FAIL] test_pipes fallo (Retorno: %d).\n\n", ret);
     }
 
     kprintf("================================================\n");

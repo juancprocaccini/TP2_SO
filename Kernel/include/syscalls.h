@@ -89,9 +89,11 @@ typedef struct
  * TODO (TP2): agregar los siguientes grupos de syscalls
  * ---------------------------------------------------------------- */
 /* --- IPC (pipes) --- */
-/* #define SYS_PIPE_OPEN   58 */
-/* #define SYS_PIPE_READ   59 */
-/* #define SYS_PIPE_WRITE  60 */
-/* #define SYS_PIPE_CLOSE  61 */
+#define SYS_PIPE_OPEN       58
+#define SYS_PIPE_OPEN_FREE  59
+#define SYS_PIPE_RESERVE    60
+#define SYS_PIPE_READ       61
+#define SYS_PIPE_WRITE      62
+#define SYS_PIPE_CLOSE      63
 
 #endif

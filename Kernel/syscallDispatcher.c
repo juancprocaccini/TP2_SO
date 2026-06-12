@@ -9,6 +9,7 @@
 #include "process.h"
 #include "scheduler.h"
 #include "semaphore.h"
+#include "pipe.h"
 
 static void sys_fillRectangle(uint64_t* args);
 
@@ -160,7 +161,31 @@ uint64_t syscallDispatcher(uint64_t syscall_num, uint64_t arg1, uint64_t arg2,
         case SYS_SEM_CLOSE:
             return (uint64_t)ksem_close((int)arg1);
 
-        /* TODO (TP2): agregar casos para pipes */
+        case SYS_PIPE_OPEN:
+            // Traduce el fd de entrada (id + 3) a ID interno del arreglo de pipes
+            return (uint64_t)pipe_open((int)arg1 - 3, (int)arg2);
+
+        case SYS_PIPE_OPEN_FREE:
+        {
+            int pipe_id = pipe_open_free((int)arg1);
+            // Retorna el fd mapeado para Userland (id + 3) o -1 si falló
+            return (pipe_id >= 0) ? (uint64_t)(pipe_id + 3) : -1;
+        }
+
+        case SYS_PIPE_RESERVE:
+        {
+            int pipe_id = pipe_reserve();
+            return (pipe_id >= 0) ? (uint64_t)(pipe_id + 3) : -1;
+        }
+
+        case SYS_PIPE_READ:
+            return (uint64_t)pipe_read((int)arg1 - 3, (char *)arg2, (int)arg3);
+
+        case SYS_PIPE_WRITE:
+            return (uint64_t)pipe_write((int)arg1 - 3, (const char *)arg2, (int)arg3);
+
+        case SYS_PIPE_CLOSE:
+            return (uint64_t)pipe_close((int)arg1 - 3, scheduler_get_running()->pid);
 
         default:
             return -1;
