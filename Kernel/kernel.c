@@ -69,7 +69,8 @@ int main() {
 
     char *shell_argv[] = {"shell"};
     pid_t shell_pid = process_create((entry_t)sampleCodeModuleAddress, MEDIUM, 1, shell_argv, 1, NULL);
-    pid_t idle_pid  = process_create(idle_process, LOW, 0, NULL, 0, NULL);
+    char *idle_argv[] = {"idle"};
+    pid_t idle_pid  = process_create(idle_process, LOW, 0, idle_argv, 1, NULL);
 
     scheduler_init(shell_pid, idle_pid);
     ksem_init();

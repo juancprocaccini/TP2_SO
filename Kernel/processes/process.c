@@ -58,7 +58,7 @@ void process_wrapper(entry_t rip, char **argv, int argc, pid_t pid)
     __asm__ volatile(
         "call *%3"
         : "=a"(ret)
-        : "D"((uint64_t)argc), "S"((uint64_t)argv), "r"((uint64_t)rip)
+        : "D"((uint64_t)argv), "S"((uint64_t)argc), "r"((uint64_t)rip)
         : "rcx", "rdx", "r8", "r9", "r10", "r11", "memory");
 
     _cli();
