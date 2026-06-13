@@ -33,6 +33,7 @@ extern int sys_pipe_reserve(void);
 extern int sys_pipe_read(int fd, char *buf, int n);
 extern int sys_pipe_write(int fd, const char *buf, int n);
 extern int sys_pipe_close(int fd);
+extern void sys_reap_orphans(void);
 
 /* --- Utilidad General --- */
 
@@ -433,3 +434,5 @@ int pipe_close(int fd)
 {
     return sys_pipe_close(fd);
 }
+
+void reap(void) { sys_reap_orphans(); }

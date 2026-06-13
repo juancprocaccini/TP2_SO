@@ -30,20 +30,22 @@ int cmd_ps(char **argv, int argc) {
         return 1;
     }
 
-    printf("%-4s %-16s %-4s %-7s %-3s %2s %3s %3s  %s\n",
-           "PID", "NAME", "PRIO", "STATE", "FG", "IN", "OUT", "ERR", "RSP");
-    printf("%-4s %-16s %-4s %-7s %-3s %2s %3s %3s  %s\n",
-           "---", "----------------", "----", "-------", "---", "--", "---", "---", "------------------");
+    printf("%-4s %-16s %-4s %-7s %-3s %2s %3s %3s  %-18s  %s\n",
+           "PID", "NAME", "PRIO", "STATE", "FG", "IN", "OUT", "ERR", "RSP", "BASE");
+    printf("%-4s %-16s %-4s %-7s %-3s %2s %3s %3s  %-18s  %s\n",
+           "---", "----------------", "----", "-------", "---", "--", "---", "---",
+           "------------------", "------------------");
     for (int i = 0; i < list->count; i++) {
         ProcessInfo *p = &list->entries[i];
-        printf("%-4d %-16s %-4s %-7s %-3s %2d %3d %3d  %016x\n",
+        printf("%-4d %-16s %-4s %-7s %-3s %2d %3d %3d  %016x  %016x\n",
                p->pid,
                p->name,
                prio_str(p->priority),
                state_str(p->state),
                p->foreground ? "yes" : "no",
                p->fds[0], p->fds[1], p->fds[2],
-               p->rsp);
+               p->rsp,
+               p->stack_base);
     }
 
     free_ps(list);

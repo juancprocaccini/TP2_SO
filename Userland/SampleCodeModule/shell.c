@@ -21,6 +21,8 @@ static void builtin_help(void) {
     printf("\nTests de la catedra:\n");
     printf("  test_sync, test_prio, test_processes, test_mm\n");
     printf("\nCaracteres especiales:\n");
+    printf("  &                 - ejecutar en background\n");
+    printf("  Ctrl+C            - matar proceso en foreground\n");
     printf("  Ctrl+D            - EOF / salir de stdin\n");
 }
 
@@ -75,22 +77,41 @@ void shell_init(void) {
     printf("Shell lista. Escribe 'help' para ver los comandos.\n");
 
     while (1) {
+        reap();
         printf("> ");
-        if (gets(line) == 0 || line[0] == '\0')
+        gets(line);
+        if (line[0] == '\0')
             continue;
 
         int argc = tokenize(line, argv, MAX_ARGS);
         if (argc == 0)
             continue;
 
+        /* Detectar & al final */
+        int background = 0;
+        if (argc > 0 && strcmp(argv[argc - 1], "&") == 0) {
+            background = 1;
+            argv[--argc] = 0;
+            if (argc == 0)
+                continue;
+        }
+
         const char *cmd = argv[0];
 
-        /* built-ins */
+        /* built-ins — no soportan background */
         if (strcmp(cmd, "help") == 0) {
+            if (background) {
+                printf("shell: built-in '%s' no puede correr en background\n", cmd);
+                continue;
+            }
             builtin_help();
             continue;
         }
         if (strcmp(cmd, "clear") == 0) {
+            if (background) {
+                printf("shell: built-in '%s' no puede correr en background\n", cmd);
+                continue;
+            }
             clearScreen();
             continue;
         }
@@ -103,11 +124,19 @@ void shell_init(void) {
         }
 
         int fds[3] = {0, 1, 2};
+        if (background)
+            fds[0] = -1;
+
         int pid = create_process(c->fn, U_MEDIUM, 1, argv, argc, fds);
         if (pid < 0) {
             printf("shell: no se pudo crear proceso\n");
             continue;
         }
-        waitpid(pid, 0);
+
+        if (background) {
+            printf("[bg] pid %d\n", pid);
+        } else {
+            waitpid(pid, 0);
+        }
     }
 }

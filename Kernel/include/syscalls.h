@@ -99,5 +99,6 @@ typedef struct
 /* --- I/O por fd (F7) --- */
 #define SYS_READ            64  /* (buf, n) → lee fds[STDIN] del proceso */
 #define SYS_WRITE           65  /* (stream_idx, buf, n) → escribe fds[idx] del proceso */
+#define SYS_REAP_ORPHANS    66  /* libera ZOMBIEs sin waiter */
 
 #endif

@@ -62,9 +62,6 @@ uint64_t scheduler(uint64_t current_rsp)
         running->rsp = current_rsp;
     }
 
-    // Variable estática para recordar quién corrió la última vez
-    static PCB *last_running = NULL;
-
     // 1. Elegir el próximo proceso
     if (list_is_empty(ready_list))
     {
@@ -125,13 +122,18 @@ PCB *scheduler_get_running(void) {
     return running;
 }
 
-/*
- * Según el PLAN: "A PCB is foreground iff it equals shell_pcb->waiting_for..."
- * Como todavía no implementamos la Shell (F8), por ahora dejamos un "Mock" (un parche)
- * que dice que todo proceso es foreground. Luego en la F8 lo conectamos con la Shell.
- */
+PCB *scheduler_get_shell(void) {
+    return shell_pcb;
+}
+
 int is_foreground(pid_t pid)
 {
-    // TODO (F8): Conectar con shell_pcb->waiting_for
-    return 1;
+    if (shell_pcb == NULL)
+        return 1;
+
+    if (shell_pcb->waiting_for == NULL)
+        return (pid == shell_pcb->pid);
+
+    // TODO: cuando se implemente |, el writer del pipe también es foreground.
+    return (pid == shell_pcb->waiting_for->pid);
 }

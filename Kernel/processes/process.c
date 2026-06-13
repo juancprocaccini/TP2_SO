@@ -271,11 +271,32 @@ void process_get_my_fds(int fds_out[3]) {
     fds_out[2] = current->fds[2];
 }
 
+void process_reap_orphans(void) {
+    _cli();
+    for (int i = 0; i < MAX_PROCESSES; i++) {
+        PCB *p = &pcbs[i];
+        if (p->state != ZOMBIE || p->waiting_me != NULL)
+            continue;
+        if (p->stack_base) {
+            mem_free((void *)p->stack_base);
+            p->stack_base = 0;
+        }
+        if (p->argv) {
+            free_argv_copy(p->argv, p->argc);
+            p->argv = NULL;
+        }
+        p->state = FREE;
+    }
+    _sti();
+}
+
 int process_kill(pid_t pid) {
     if (pid < 0 || pid >= MAX_PROCESSES)
         return -1;
     PCB *p = &pcbs[pid];
     if (p->state == FREE || !p->killable)
+        return -1;
+    if (p == scheduler_get_shell())
         return -1;
 
     _cli(); // Operación atómica de Kernel
@@ -291,12 +312,10 @@ int process_kill(pid_t pid) {
         p->waiting_for->waiting_me = NULL;
     }
     
-    // A CHEQUEAR IGUAL, quizás no sea necesario:
-
-    // Hook para desalojar del teclado si correspondiera
-    // extern PCB* keyboard_blocked;
-    // if (p == keyboard_blocked) keyboard_blocked = NULL;
-
+    // TODO(F9): al matar un proceso bloqueado en stdin, limpiar kbd_waiting_pcb en el
+    // keyboard driver (o chequear state != FREE en el IRQ handler) para evitar
+    // use-after-free al despertar un PCB muerto. Solo triggereable con apps que lean
+    // stdin (cat/wc/filter) + Ctrl+C/kill.
 
     // Desalojo seguro de las colas de Semáforos (F5 ready)
     if (p->blocked_by_sem != -1)
@@ -386,6 +405,8 @@ int process_ps(ProcessInfoList **info_list_out){
     if (!info_list_out)
         return -1;
 
+    _cli();
+
     int count = 0;
     for (int i = 0; i < MAX_PROCESSES; i++)
     {
@@ -396,7 +417,10 @@ int process_ps(ProcessInfoList **info_list_out){
     // Alocamos la lista contenedora en el Kernel Heap
     ProcessInfoList *list = (ProcessInfoList *)mem_alloc(sizeof(ProcessInfoList));
     if (!list)
+    {
+        _sti();
         return -1;
+    }
 
     list->count = count;
     list->entries = NULL;
@@ -407,6 +431,7 @@ int process_ps(ProcessInfoList **info_list_out){
         if (!list->entries)
         {
             mem_free(list);
+            _sti();
             return -1;
         }
 
@@ -438,6 +463,8 @@ int process_ps(ProcessInfoList **info_list_out){
             }
         }
     }
+
+    _sti();
 
     *info_list_out = list;
     return count;

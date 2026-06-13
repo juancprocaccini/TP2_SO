@@ -136,5 +136,8 @@ int pipe_reserve(void);
 int pipe_read(int fd, char *buf, int n);
 int pipe_write(int fd, const char *buf, int n);
 int pipe_close(int fd);
+
+/* --- Gestión de zombies --- */
+void reap(void);
 #endif
 

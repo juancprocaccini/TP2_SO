@@ -61,6 +61,7 @@ void  process_yield(void);
 int process_set_block_by_sem(pid_t pid, int id);
 
 int process_kill(pid_t pid);
+void process_reap_orphans(void);
 int   process_nice(pid_t pid, priority_t priority);
 int   process_block(pid_t pid);
 int   process_unblock(pid_t pid);
@@ -70,9 +71,5 @@ int process_ps(ProcessInfoList **info_list_out);
 void process_free_ps(ProcessInfoList *list);
 int process_get_status(pid_t pid);
 void process_get_my_fds(int fds_out[3]);
-
-int   process_print_all(PCB *buf, int max);
-
-PCB * process_get(pid_t pid);
 
 #endif

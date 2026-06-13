@@ -13,6 +13,7 @@ void     scheduler_block_no_yield(PCB *p);
 void     scheduler_yield(void);
 void     scheduler_unschedule(PCB *p);
 PCB *    scheduler_get_running(void);
+PCB *    scheduler_get_shell(void);
 int      is_foreground(pid_t pid);
 
 

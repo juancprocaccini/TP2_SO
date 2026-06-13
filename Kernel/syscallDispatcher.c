@@ -223,6 +223,10 @@ uint64_t syscallDispatcher(uint64_t syscall_num, uint64_t arg1, uint64_t arg2,
             return (uint64_t)pipe_write(fd - 3, buf, n);
         }
 
+        case SYS_REAP_ORPHANS:
+            process_reap_orphans();
+            return 0;
+
         default:
             return -1;
     }

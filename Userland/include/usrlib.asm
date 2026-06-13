@@ -36,6 +36,7 @@ global sys_pipe_read, sys_pipe_write, sys_pipe_close
 
 ; I/O por fd (F7)
 global sys_read, sys_write
+global sys_reap_orphans
 
 %macro SYSCALL 1
     mov rax, %1
@@ -219,3 +220,6 @@ sys_read:
 
 sys_write:
     SYSCALL 65
+
+sys_reap_orphans:
+    SYSCALL 66
