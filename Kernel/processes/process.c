@@ -368,8 +368,9 @@ int process_waitpid(pid_t pid, int *ret_out)
         me->waiting_for = target;
         me->state = BLOCKED;
         scheduler_block(me);
-
+        
         // Al despertar, limpiamos la relación
+        _sti();
         me->waiting_for = NULL;
     }
 

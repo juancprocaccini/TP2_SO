@@ -85,9 +85,6 @@ typedef struct
 #define SYS_SEM_POST        56 
 #define SYS_SEM_CLOSE       57
 
-/* ----------------------------------------------------------------
- * TODO (TP2): agregar los siguientes grupos de syscalls
- * ---------------------------------------------------------------- */
 /* --- IPC (pipes) --- */
 #define SYS_PIPE_OPEN       58
 #define SYS_PIPE_OPEN_FREE  59
