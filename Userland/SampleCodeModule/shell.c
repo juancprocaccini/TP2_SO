@@ -18,6 +18,9 @@ static void builtin_help(void) {
     printf("  kill <pid>        - terminar proceso\n");
     printf("  nice <pid> <pri>  - cambiar prioridad (low/medium/high)\n");
     printf("  block <pid>       - bloquear/desbloquear proceso\n");
+    printf("  cat               - copia stdin a stdout\n");
+    printf("  wc                - cuenta lineas de stdin\n");
+    printf("  filter            - filtra vocales de stdin\n");
     printf("\nTests de la catedra:\n");
     printf("  test_sync, test_prio, test_processes, test_mm\n");
     printf("\nCaracteres especiales:\n");
@@ -34,12 +37,15 @@ typedef struct {
 } Command;
 
 static const Command cmds[] = {
-    { "mem",   cmd_mem   },
-    { "ps",    cmd_ps    },
-    { "loop",  cmd_loop  },
-    { "kill",  cmd_kill  },
-    { "nice",  cmd_nice  },
-    { "block", cmd_block },
+    { "mem",    cmd_mem    },
+    { "ps",     cmd_ps     },
+    { "loop",   cmd_loop   },
+    { "kill",   cmd_kill   },
+    { "nice",   cmd_nice   },
+    { "block",  cmd_block  },
+    { "cat",    cmd_cat    },
+    { "wc",     cmd_wc     },
+    { "filter", cmd_filter },
     { 0, 0 }
 };
 
@@ -79,7 +85,7 @@ void shell_init(void) {
     while (1) {
         reap();
         printf("> ");
-        gets(line);
+        gets(line, LINE_LEN);
         if (line[0] == '\0')
             continue;
 

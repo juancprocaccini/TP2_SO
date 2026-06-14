@@ -55,7 +55,7 @@ void kprintf(const char *fmt, ...);
 /* --- I/O por fd (F7) --- */
 int getchar(void);
 void putchar(char c);
-char *gets(char *buf);
+char *gets(char *buf, int size);
 void puts(const char *s);
 int printf(const char *fmt, ...);
 int fprintf(int fd, const char *fmt, ...);

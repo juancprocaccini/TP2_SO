@@ -224,19 +224,18 @@ void putchar(char c) {
     sys_write(1, &c, 1);    /* FD_STDOUT = stream index 1 */
 }
 
-char *gets(char *buf) {
+char *gets(char *buf, int size) {
     int i = 0;
     int c;
+    /* El driver ya echó los caracteres y el salto de línea; solo acumular */
     while ((c = getchar()) != '\n' && c != 0) {
-        if (c == '\b') {
-            if (i > 0) { i--; deleteChar(); }
-        } else {
+        if (size > 0 && i < size - 1)
             buf[i++] = (char)c;
-            putchar((char)c);
-        }
+        /* Si la línea supera el límite, se sigue consumiendo sin guardar para
+         * que el '\n' llegue limpio y el próximo prompt arranque normal. */
     }
-    putchar('\n');   /* avanzar a la siguiente línea (Enter o EOF) */
-    buf[i] = '\0';
+    if (size > 0)
+        buf[i] = '\0';
     return buf;
 }
 

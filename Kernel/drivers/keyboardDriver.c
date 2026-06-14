@@ -1,4 +1,5 @@
 #include "keyboardDriver.h"
+#include "videoDriver.h"
 #include "scheduler.h"
 #include <stdint.h>
 #include <stddef.h>
@@ -20,6 +21,14 @@ static size_t kbd_buffer_count = 0;
 
 /* Proceso bloqueado esperando input de teclado (NULL si nadie espera) */
 static PCB *kbd_waiting_pcb = NULL;
+
+/* Modo canónico: líneas completas (o EOFs) pendientes de consumir */
+static int lines_ready = 0;
+/* Longitud de la línea parcial en edición (protege el prompt del backspace) */
+static int line_len    = 0;
+
+/* Máximo de caracteres por línea antes de Enter (una menos que el buffer) */
+#define KBD_LINE_MAX  255
 
 static uint8_t extended_scancode = 0;
 
@@ -142,17 +151,41 @@ void kbd_handler(uint8_t scancode) {
         return;
     }
 
-    /* Ctrl+D → inyectar byte 0 (EOF) y despertar al proceso que espera stdin */
+    /* Ctrl+D → EOF: mueve el cursor a nueva línea, termina la línea parcial */
     if (kbd_ctrl_pressed && key_code == 0x20) {  /* 0x20 = scancode de 'd' */
+        newLine();
         kbd_buffer_put(0);
+        line_len = 0;
+        lines_ready++;
         kbd_wake_waiter();
         return;
     }
 
     char letra = get_char_with_modifiers(key_code);
-    if (letra != 0) {
-        kbd_buffer_put(letra);
+    if (letra == 0) return;     /* tecla sin mapeo ASCII */
+
+    if (letra == '\b') {
+        /* Backspace: solo borra dentro de la línea actual, no toca líneas anteriores */
+        if (line_len > 0) {
+            kbd_buffer_end = (kbd_buffer_end + sizeof(kbd_buffer) - 1) % sizeof(kbd_buffer);
+            kbd_buffer_count--;
+            line_len--;
+            deleteChar();
+        }
+    } else if (letra == '\n') {
+        kbd_buffer_put('\n');
+        line_len = 0;
+        lines_ready++;
+        newLine();
         kbd_wake_waiter();
+    } else {
+        /* Carácter imprimible: eco inmediato, encolar, no despertar.
+         * Al llegar al tope se ignoran los chars entrantes hasta Enter. */
+        if (line_len >= KBD_LINE_MAX)
+            return;
+        vPutChar((uint64_t)(unsigned char)letra, 0xFFFFFF);
+        kbd_buffer_put(letra);
+        line_len++;
     }
 }
 
@@ -160,6 +193,8 @@ void kbd_clear_buffer(void) {
     kbd_buffer_start = 0;
     kbd_buffer_end   = 0;
     kbd_buffer_count = 0;
+    lines_ready      = 0;
+    line_len         = 0;
     for (size_t i = 0; i < sizeof(kbd_buffer); i++) {
         kbd_buffer[i] = 0;
     }
@@ -191,10 +226,10 @@ uint32_t kbd_read_chars(char* buffer, uint32_t max_chars) {
 int stdin_read(char *buf, int n) {
     if (n <= 0) return 0;
 
-    /* Bloquear hasta que haya al menos un carácter */
+    /* Modo canónico: bloquear hasta que haya una línea completa o EOF */
     while (1) {
         _cli();
-        if (kbd_buffer_count > 0) {
+        if (lines_ready > 0) {
             _sti();
             break;
         }
@@ -204,16 +239,22 @@ int stdin_read(char *buf, int n) {
         scheduler_yield();
     }
 
-    /* Leer hasta n bytes, parando en newline o EOF */
+    /* Leer hasta n bytes, parando en '\n' o EOF (byte 0) */
     int count = 0;
     while (count < n) {
         _cli();
         if (kbd_buffer_count == 0) { _sti(); break; }
         char c = kbd_buffer_get();
         _sti();
-        if (c == 0) break;      /* EOF: devolver lo acumulado (0 si es el primer char) */
+        if (c == 0) {
+            lines_ready--;
+            break;      /* EOF: retornar lo acumulado (0 si es el primer char) */
+        }
         buf[count++] = c;
-        if (c == '\n') break;
+        if (c == '\n') {
+            lines_ready--;
+            break;
+        }
     }
     return count;
 }
