@@ -36,6 +36,7 @@ static void builtin_help(void) {
     printf("  wc                - cuenta lineas de stdin\n");
     printf("  filter            - filtra vocales de stdin\n");
     printf("  mvar <W> <R>      - W escritores y R lectores sobre variable compartida\n");
+    printf("  killall <nombre>  - mata todos los procesos cuyo nombre empieza con <nombre>\n");
     printf("\nTests de la catedra:\n");
     printf("  test_sync, test_prio, test_processes, test_mm\n");
     printf("\nCaracteres especiales:\n");
@@ -43,6 +44,32 @@ static void builtin_help(void) {
     printf("  |                 - conectar stdout de cmd1 con stdin de cmd2\n");
     printf("  Ctrl+C            - matar proceso en foreground\n");
     printf("  Ctrl+D            - EOF / salir de stdin\n");
+}
+
+/* Mata todos los procesos cuyo nombre empieza con 'prefix'. Util para frenar
+ * grupos de procesos de fondo (p. ej. 'killall mvar' para todos los workers de
+ * mvar) sin tener que matarlos uno por uno. Nunca se mata a si misma. */
+static void builtin_killall(const char *prefix) {
+    if (prefix == 0 || prefix[0] == '\0') {
+        printf("Uso: killall <prefijo-de-nombre>\n");
+        return;
+    }
+    ProcessInfoList *list = 0;
+    if (ps(&list) < 0 || list == 0) {
+        printf("killall: no se pudo listar procesos\n");
+        return;
+    }
+    int plen = strlen(prefix);
+    int self = getpid();
+    int killed = 0;
+    for (int i = 0; i < list->count; i++) {
+        ProcessInfo *e = &list->entries[i];
+        if (e->pid == self) continue;
+        if (strncasecmp(e->name, prefix, plen) == 0 && kill(e->pid) == 0)
+            killed++;
+    }
+    free_ps(list);
+    printf("killall: %d proceso(s) terminado(s)\n", killed);
 }
 
 /* --- tabla de comandos como procesos --- */
@@ -216,6 +243,14 @@ void shell_init(void) {
                 continue;
             }
             clearScreen();
+            continue;
+        }
+        if (strcmp(cmd, "killall") == 0) {
+            if (background) {
+                printf("shell: built-in '%s' no puede correr en background\n", cmd);
+                continue;
+            }
+            builtin_killall(argc > 1 ? argv[1] : 0);
             continue;
         }
 

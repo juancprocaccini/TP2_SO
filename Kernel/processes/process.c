@@ -31,6 +31,11 @@ void ctrlc_handler(void) {
     PCB *fg = shell->waiting_for;
     if (fg == NULL || fg == shell || fg->state == FREE) return;
     pid_t fg_pid = fg->pid;
+    /* Vaciar el buffer de teclado antes de matar: lo que se tipeó y el foreground
+     * no alcanzó a consumir no debe filtrarse al próximo comando de la shell.
+     * Se hace antes del kill porque el process_kill del foreground puede ser un
+     * self-kill que no retorna. */
+    kbd_clear_buffer();
     /* Si el foreground lee de un pipe, su escritor también es foreground: matarlo primero
      * para que quede resuelto antes del posible self-kill que no retorna. */
     int rfd = fg->fds[0];
