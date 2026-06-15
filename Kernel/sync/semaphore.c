@@ -182,7 +182,9 @@ int ksem_post(int id)
         PCB *next_pcb = (PCB *)queue_dequeue(sem->waiters);
         if (next_pcb != NULL)
         {
-            process_unblock(next_pcb->pid);
+            /* process_unblock() llama _sti() internamente: deadlock si el timer
+             * preemptea al poster antes de release(lock). Usar scheduler_ready. */
+            scheduler_ready(next_pcb);
             process_set_block_by_sem(next_pcb->pid, -1);
         }
     }
@@ -219,7 +221,7 @@ int ksem_post_no_yield(int id)
         PCB *next_pcb = (PCB *)queue_dequeue(sem->waiters);
         if (next_pcb != NULL)
         {
-            process_unblock(next_pcb->pid);
+            scheduler_ready(next_pcb);
             process_set_block_by_sem(next_pcb->pid, -1);
         }
     }

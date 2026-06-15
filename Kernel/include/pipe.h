@@ -30,6 +30,9 @@ int pipe_reserve(void);
 int pipe_read(int id, char *buf, int n);
 int pipe_write(int id, const char *buf, int n);
 int pipe_close(int id, pid_t pid);
+/* Igual a pipe_close pero el cierre del writer usa ksem_post_no_yield en vez de
+ * ksem_post: no cede la CPU, apto para llamar desde process_kill / make_zombie. */
+int pipe_close_quiet(int id, pid_t pid);
 pid_t pipe_get_pid(int id, int mode);
 
 #endif

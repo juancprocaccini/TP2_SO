@@ -21,10 +21,12 @@ static void builtin_help(void) {
     printf("  cat               - copia stdin a stdout\n");
     printf("  wc                - cuenta lineas de stdin\n");
     printf("  filter            - filtra vocales de stdin\n");
+    printf("  mvar <W> <R>      - W escritores y R lectores sobre variable compartida\n");
     printf("\nTests de la catedra:\n");
     printf("  test_sync, test_prio, test_processes, test_mm\n");
     printf("\nCaracteres especiales:\n");
     printf("  &                 - ejecutar en background\n");
+    printf("  |                 - conectar stdout de cmd1 con stdin de cmd2\n");
     printf("  Ctrl+C            - matar proceso en foreground\n");
     printf("  Ctrl+D            - EOF / salir de stdin\n");
 }
@@ -46,6 +48,7 @@ static const Command cmds[] = {
     { "cat",    cmd_cat    },
     { "wc",     cmd_wc     },
     { "filter", cmd_filter },
+    { "mvar",   cmd_mvar   },
     { 0, 0 }
 };
 
@@ -100,6 +103,82 @@ void shell_init(void) {
             argv[--argc] = 0;
             if (argc == 0)
                 continue;
+        }
+
+        /* Detectar | */
+        int pipe_pos = -1;
+        int pipe_count = 0;
+        for (int i = 0; i < argc; i++) {
+            if (strcmp(argv[i], "|") == 0) {
+                pipe_count++;
+                pipe_pos = i;
+            }
+        }
+
+        if (pipe_count > 1) {
+            printf("shell: solo se soporta un pipe por comando\n");
+            continue;
+        }
+
+        if (pipe_count == 1) {
+            int left_argc = pipe_pos;
+            char **left_argv = argv;
+            argv[pipe_pos] = 0;
+
+            int right_argc = argc - pipe_pos - 1;
+            char **right_argv = argv + pipe_pos + 1;
+
+            if (left_argc == 0 || right_argc == 0) {
+                printf("shell: sintaxis: uso: cmd1 | cmd2\n");
+                continue;
+            }
+
+            const char *lcmd = left_argv[0];
+            const char *rcmd = right_argv[0];
+
+            if (strcmp(lcmd, "help") == 0 || strcmp(lcmd, "clear") == 0) {
+                printf("shell: '%s' es built-in, no puede usarse en un pipe\n", lcmd);
+                continue;
+            }
+            if (strcmp(rcmd, "help") == 0 || strcmp(rcmd, "clear") == 0) {
+                printf("shell: '%s' es built-in, no puede usarse en un pipe\n", rcmd);
+                continue;
+            }
+
+            const Command *lc = find_cmd(lcmd);
+            if (!lc) { printf("%s: comando no encontrado\n", lcmd); continue; }
+            const Command *rc = find_cmd(rcmd);
+            if (!rc) { printf("%s: comando no encontrado\n", rcmd); continue; }
+
+            int fd_pipe = pipe_reserve();
+            if (fd_pipe < 0) {
+                printf("shell: no se pudo reservar pipe\n");
+                continue;
+            }
+
+            int writer_fds[3] = { background ? -1 : 0, fd_pipe, 2 };
+            int reader_fds[3] = { fd_pipe, 1, 2 };
+
+            int pid1 = create_process(lc->fn, U_MEDIUM, 1, left_argv, left_argc, writer_fds);
+            if (pid1 < 0) {
+                printf("shell: no se pudo crear proceso escritor\n");
+                continue;
+            }
+
+            int pid2 = create_process(rc->fn, U_MEDIUM, 1, right_argv, right_argc, reader_fds);
+            if (pid2 < 0) {
+                kill(pid1);
+                printf("shell: no se pudo crear proceso lector\n");
+                continue;
+            }
+
+            if (background) {
+                printf("[bg] pid %d pid %d\n", pid1, pid2);
+            } else {
+                waitpid(pid2, 0);
+                waitpid(pid1, 0);
+            }
+            continue;
         }
 
         const char *cmd = argv[0];

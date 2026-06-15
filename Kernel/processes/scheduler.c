@@ -1,5 +1,6 @@
 #include <scheduler.h>
 #include <list.h>
+#include <pipe.h>
 #include <stddef.h>
 #include "videoDriver.h"
 
@@ -131,9 +132,16 @@ int is_foreground(pid_t pid)
     if (shell_pcb == NULL)
         return 1;
 
-    if (shell_pcb->waiting_for == NULL)
-        return (pid == shell_pcb->pid);
-
-    // TODO: cuando se implemente |, el writer del pipe también es foreground.
-    return (pid == shell_pcb->waiting_for->pid);
+    PCB *fg = shell_pcb->waiting_for;
+    if (fg == NULL)
+        return 0;
+    if (fg->pid == pid)
+        return 1;
+    /* El escritor del pipe que lee el foreground también cuenta como foreground. */
+    int rfd = fg->fds[0];
+    if (rfd >= 3) {
+        pid_t w = pipe_get_pid(rfd - 3, WRITER);
+        if (w == pid) return 1;
+    }
+    return 0;
 }

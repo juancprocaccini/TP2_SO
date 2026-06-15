@@ -154,7 +154,7 @@ static void test_sys_write_direct(void) {
 /*                                                                     */
 /* El escritor recibe fds[1]=pipe → su printf() escribe al pipe.      */
 /* El lector recibe fds[0]=pipe → su getchar() lee del pipe.          */
-/* Ambos abren el pipe en su rol al arrancar (igual que test_pipes).  */
+/* process_create ya registró ambos extremos vía pipe_open_pid (F9).  */
 /* ------------------------------------------------------------------ */
 
 static const char *PIPE_MSG = "FD_ABS_OK";
@@ -165,9 +165,6 @@ static int pipe_fd_writer(uint64_t argc, char *argv[]) {
     int ok;
     int fd_pipe = satoi(argv[0], &ok);
     if (!ok) return -1;
-
-    /* Abrir el pipe como escritor para este proceso */
-    if (pipe_open(fd_pipe, WRITER) < 0) return -1;
 
     /*
      * printf rutea por sys_write(1, ...) → kernel ve fds[1]=fd_pipe
@@ -186,9 +183,6 @@ static int pipe_fd_reader(uint64_t argc, char *argv[]) {
     int ok;
     int fd_pipe = satoi(argv[0], &ok);
     if (!ok) return -1;
-
-    /* Abrir el pipe como lector para este proceso */
-    if (pipe_open(fd_pipe, READER) < 0) return -1;
 
     /*
      * getchar() → sys_read() → kernel ve fds[0]=fd_pipe

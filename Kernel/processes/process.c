@@ -5,6 +5,8 @@
 #include <defs.h>
 #include <stddef.h>
 #include <semaphore.h>
+#include <pipe.h>
+#include <keyboardDriver.h>
 
 PCB pcbs[MAX_PROCESSES];
 
@@ -17,7 +19,33 @@ extern void scheduler_unschedule(PCB *p);
 extern void scheduler_block(PCB *p);
 extern int is_foreground(pid_t pid);
 
+static void close_process_pipes(PCB *p) {
+    for (int i = 0; i < 3; i++)
+        if (p->fds[i] >= 3)
+            pipe_close_quiet(p->fds[i] - 3, p->pid);
+}
+
+void ctrlc_handler(void) {
+    PCB *shell = scheduler_get_shell();
+    if (shell == NULL) return;
+    PCB *fg = shell->waiting_for;
+    if (fg == NULL || fg == shell || fg->state == FREE) return;
+    pid_t fg_pid = fg->pid;
+    /* Si el foreground lee de un pipe, su escritor también es foreground: matarlo primero
+     * para que quede resuelto antes del posible self-kill que no retorna. */
+    int rfd = fg->fds[0];
+    if (rfd >= 3) {
+        pid_t w = pipe_get_pid(rfd - 3, WRITER);
+        if (w >= 0 && w != fg_pid) process_kill(w);
+    }
+    process_kill(fg_pid);
+}
+
 static void make_zombie(pid_t pid, int status) {
+    close_process_pipes(&pcbs[pid]);
+    /* pipe_close_quiet hace _sti() internamente; restaurar atomicidad antes
+     * de modificar estado del PCB y las listas del scheduler. */
+    _cli();
     pcbs[pid].exit_status = status;
     pcbs[pid].state = ZOMBIE;
     scheduler_unschedule(&pcbs[pid]);
@@ -185,6 +213,15 @@ pid_t process_create(entry_t rip, priority_t pri, int killable, char **argv, int
         return -1;
     }
 
+    /* Registrar pipes DESPUÉS de scheduler_ready: ksem_open_kernel_side hace
+     * _sti() y si se pusiera antes expone mem_alloc de list_add con IF=1.
+     * En uniprocessor el proceso nuevo no toma CPU hasta que el syscall retorne,
+     * así que el pipe queda consistente antes de que el hijo arranque. */
+    if (fds && fds[0] >= 3)
+        pipe_open_pid(fds[0] - 3, READER, pid);
+    if (fds && fds[1] >= 3)
+        pipe_open_pid(fds[1] - 3, WRITER, pid);
+
     return pid;
 }
 
@@ -312,16 +349,18 @@ int process_kill(pid_t pid) {
         p->waiting_for->waiting_me = NULL;
     }
     
-    // TODO(F9): al matar un proceso bloqueado en stdin, limpiar kbd_waiting_pcb en el
-    // keyboard driver (o chequear state != FREE en el IRQ handler) para evitar
-    // use-after-free al despertar un PCB muerto. Solo triggereable con apps que lean
-    // stdin (cat/wc/filter) + Ctrl+C/kill.
+    kbd_clear_waiter(p);
 
     // Desalojo seguro de las colas de Semáforos (F5 ready)
     if (p->blocked_by_sem != -1)
     {
         ksem_remove_waiter(p->blocked_by_sem, p);
     }
+
+    /* pipe_close_quiet llama ksem_post_no_yield que hace _sti() internamente;
+     * segundo _cli() después para retomar atomicidad en el teardown final. */
+    close_process_pipes(p);
+    _cli();
 
     // Liberación completa de recursos
     if (p->stack_base)

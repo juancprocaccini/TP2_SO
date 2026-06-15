@@ -79,11 +79,19 @@ static void kbd_buffer_put(char c) {
     }
 }
 
+void kbd_clear_waiter(PCB *p) {
+    if (kbd_waiting_pcb == p)
+        kbd_waiting_pcb = NULL;
+}
+
 static void kbd_wake_waiter(void) {
     if (kbd_waiting_pcb != NULL) {
         PCB *p = kbd_waiting_pcb;
         kbd_waiting_pcb = NULL;
-        scheduler_ready(p);
+        /* Red de seguridad: el slot puede haberse reutilizado si el proceso
+         * fue matado mientras esperaba stdin. Solo despertar si sigue bloqueado. */
+        if (p->state != FREE)
+            scheduler_ready(p);
     }
 }
 
@@ -158,6 +166,12 @@ void kbd_handler(uint8_t scancode) {
         line_len = 0;
         lines_ready++;
         kbd_wake_waiter();
+        return;
+    }
+
+    if (kbd_ctrl_pressed && key_code == 0x2E) {  /* 0x2E = scancode de 'c' */
+        newLine();
+        ctrlc_handler();
         return;
     }
 

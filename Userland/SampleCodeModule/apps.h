@@ -13,5 +13,6 @@ int cmd_block(char **argv, int argc);
 int cmd_cat(char **argv, int argc);
 int cmd_wc(char **argv, int argc);
 int cmd_filter(char **argv, int argc);
+int cmd_mvar(char **argv, int argc);
 
 #endif

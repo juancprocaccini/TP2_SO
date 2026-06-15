@@ -72,4 +72,7 @@ void process_free_ps(ProcessInfoList *list);
 int process_get_status(pid_t pid);
 void process_get_my_fds(int fds_out[3]);
 
+/* Llamado desde IRQ1 (Ctrl+C): mata al foreground y su escritor de pipe si aplica. */
+void ctrlc_handler(void);
+
 #endif

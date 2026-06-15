@@ -2,6 +2,7 @@
 #define KEYBOARD_H
 
 #include <stdint.h>
+#include "process.h"
 
 // Bits de scancode: indica si la tecla fue presionada o soltada
 #define BIT_SCANCODE_UP   0b10000000
@@ -31,5 +32,8 @@ void     kbd_clear_buffer(void);
 
 // Lectura bloqueante (F7): bloquea el proceso hasta que haya input
 int stdin_read(char *buf, int n);
+
+// Anula kbd_waiting_pcb si apunta a p (llamar antes de liberar el PCB).
+void kbd_clear_waiter(PCB *p);
 
 #endif

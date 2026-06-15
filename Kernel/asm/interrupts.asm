@@ -163,11 +163,10 @@ _irq01Handler:
     mov byte [snapshot_available], 1
     
 .skipCapture:
-    ; Continuar con el handler normal
+    mov al, 0x20
+    out 0x20, al    ; EOI antes del handler: ACK garantizado aunque ctrlc_handler no retorne (interrupt gate 0x8E previene IRQ1 anidado)
     mov rdi, 1      ; IRQ number (Keyboard)
     call irqDispatcher
-    mov al, 0x20
-    out 0x20, al    ; EOI al Master PIC
     popState
     iretq
 

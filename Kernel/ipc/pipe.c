@@ -215,6 +215,57 @@ int pipe_close(int id, pid_t pid)
     return 0;
 }
 
+int pipe_close_quiet(int id, pid_t pid)
+{
+    if (id < 0 || id >= MAX_PIPES)
+        return -1;
+
+    pipe_t *pipe = &pipes[id];
+    int found = 0;
+
+    if (pipe->pids[READER] == pid)
+    {
+        pipe->pids[READER] = -1;
+        pipe->closed_by_reader = 1;
+        found = 1;
+        ksem_post_no_yield(pipe->sem_space);
+    }
+
+    if (pipe->pids[WRITER] == pid)
+    {
+        pipe->pids[WRITER] = -1;
+        found = 1;
+        if (!pipe->closed_by_reader)
+        {
+            /* write_pos puede ser PIPE_BUFFER_SIZE si el writer murió bloqueado
+             * en ksem_wait(sem_space): proteger el acceso al buffer. */
+            if (pipe->write_pos >= PIPE_BUFFER_SIZE)
+                pipe->write_pos = 0;
+            pipe->buf[pipe->write_pos] = 0;
+            pipe->write_pos++;
+            ksem_post_no_yield(pipe->sem_data);
+            if (pipe->write_pos == PIPE_BUFFER_SIZE)
+                pipe->write_pos = 0;
+        }
+    }
+
+    if (!found)
+        return -1;
+
+    if (pipe->pids[READER] == -1 && pipe->pids[WRITER] == -1)
+    {
+        ksem_close(pipe->sem_data);
+        ksem_close(pipe->sem_space);
+        pipe->reserved = 0;
+        pipe->closed_by_reader = 0;
+        pipe->init_count = 0;
+        pipe->read_pos = 0;
+        pipe->write_pos = 0;
+    }
+
+    return 0;
+}
+
 pid_t pipe_get_pid(int id, int mode)
 {
     if (id < 0 || id >= MAX_PIPES || (mode != READER && mode != WRITER))
