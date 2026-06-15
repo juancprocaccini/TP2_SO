@@ -51,6 +51,7 @@ void getDateString(char* buffer);
 void intToString(int value, char* buffer);
 void uint64ToHex(uint64_t value, char* buffer);
 void kprintf(const char *fmt, ...);
+int satoi(const char *str, int *ok);
 
 /* --- I/O por fd (F7) --- */
 int getchar(void);

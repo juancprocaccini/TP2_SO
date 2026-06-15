@@ -37,7 +37,7 @@ static inline uint8_t memcheck(void *start, uint8_t value, uint32_t size)
 }
 
 // Conversión de string a entero (para parsear argv)
-static inline int64_t satoi(char *str)
+static inline int64_t satoiOld(char *str)
 {
     uint64_t i = 0;
     int64_t res = 0;

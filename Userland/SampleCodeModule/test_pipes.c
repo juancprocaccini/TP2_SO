@@ -16,7 +16,7 @@ int pipe_writer_worker(uint64_t argc, char *argv[])
 {
     if (argc != 1)
         return -1;
-    int fd = satoi(argv[0]);
+    int fd = satoiOld(argv[0]);
 
     if (pipe_open(fd, WRITER) < 0)
     {
@@ -52,7 +52,7 @@ int pipe_reader_worker(uint64_t argc, char *argv[])
 {
     if (argc != 1)
         return -1;
-    int fd = satoi(argv[0]);
+    int fd = satoiOld(argv[0]);
 
     if (pipe_open(fd, READER) < 0)
     {
@@ -85,6 +85,7 @@ int test_pipes(char *argv[], int argc)
 {
     printf("=== INICIANDO TEST DE PIPES ===\n");
 
+    
     int fd = pipe_reserve();
     if (fd < 0)
     {

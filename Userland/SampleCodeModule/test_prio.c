@@ -27,9 +27,12 @@ int test_prio(char *argv[], int argc)
     int fds[3] = {0, 1, 2};
 
     if (argc != 1)
+    {
+        printf("cant argumentos distinta de 1\n");
         return -1;
-
-    if ((max_value = satoi(argv[0])) <= 0)
+    }
+    
+    if ((max_value = satoiOld(argv[0])) <= 0)
         return -1;
 
     printf("SAME PRIORITY...\n");

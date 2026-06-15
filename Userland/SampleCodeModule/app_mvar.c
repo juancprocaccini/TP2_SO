@@ -34,8 +34,7 @@ static void build_name(char *dst, const char *prefix, int i) {
  * (el cuello de botella). Con prioridades iguales avanzan al mismo ritmo y la
  * salida queda alternada (ABAB); al subirle la prioridad a uno, ese escritor
  * recorre su espera mas rapido (HIGH=3 quantums vs LOW=1) y desbalancea la
- * salida (consigna: mvar 2 1 + nice B high -> ABABABBBABBB...).
- * MVAR_WRITER_BASE controla la velocidad/legibilidad; subilo/bajalo a gusto. */
+ * salida (consigna: mvar 2 1 + nice B high -> ABABABBBABBB...). */
 #define MVAR_WRITER_BASE   3000000u
 #define MVAR_WRITER_SPREAD  200000u
 

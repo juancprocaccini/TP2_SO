@@ -24,11 +24,11 @@ int my_process_inc(char *argv[], int argc)
     if (argc != 3)
         return -1;
 
-    if ((n = satoi(argv[0])) <= 0)
+    if ((n = satoiOld(argv[0])) <= 0)
         return -1;
-    if ((inc = satoi(argv[1])) == 0)
+    if ((inc = satoiOld(argv[1])) == 0)
         return -1;
-    if ((use_sem = satoi(argv[2])) < 0)
+    if ((use_sem = satoiOld(argv[2])) < 0)
         return -1;
 
     if (use_sem)
@@ -61,8 +61,12 @@ int test_sync(char *argv[], int argc)
     uint64_t pids[2 * TOTAL_PAIR_PROCESSES];
     int fds[3] = {0, 1, 2};
 
-    if (argc != 2)
+    if (argc != 2){
         return -1;
+        printf("test_sync requiere exactamente 2 argumentos\n");
+        printf("Ejemplo de uso: test_sync 5000 0\n");
+    }
+        
 
     char *argvDec[] = {argv[0], "-1", argv[1], 0};
     char *argvInc[] = {argv[0], "1", argv[1], 0};

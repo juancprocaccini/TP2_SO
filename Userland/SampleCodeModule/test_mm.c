@@ -17,12 +17,17 @@ int test_mm(char *argv[], int argc) {
     uint32_t total;
     uint64_t max_memory;
 
+
     if (argc != 1)
+    {
+        printf("cant argumentos distinta de 1\n");
+        return -1;
+    }
+
+    if ((max_memory = satoiOld(argv[0])) <= 0)
         return -1;
 
-    if ((max_memory = satoi(argv[0])) <= 0)
-        return -1;
-
+    // Bucle infinto a terminar con un Ctrl+C
     while (1) {
         rq = 0;
         total = 0;
