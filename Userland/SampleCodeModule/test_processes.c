@@ -40,9 +40,7 @@ int test_processes(char *argv[], int argc)
 
     p_rq p_rqs[max_processes];
 
-    int iteraciones=1;
-
-    while (iteraciones<100)
+    while (1)
     {
         for (rq = 0; rq < max_processes; rq++)
         {
@@ -107,8 +105,6 @@ int test_processes(char *argv[], int argc)
                     p_rqs[rq].state = RUNNING;
                 }
         }
-
-        iteraciones++;
     }
     return 0;
 }

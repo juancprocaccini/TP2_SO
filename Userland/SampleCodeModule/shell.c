@@ -3,6 +3,20 @@
 #include "usrlib.h"
 #include "apps.h"
 
+/* tests de la catedra (corren como procesos de usuario, F10).
+ * Conservan la convencion de argv de la catedra (argv[0] = primer argumento,
+ * argc = cantidad de args sin el nombre del comando). Los adaptadores de abajo
+ * descartan el nombre del comando para no modificar el codigo de los tests. */
+int test_mm(char **argv, int argc);
+int test_processes(char **argv, int argc);
+int test_sync(char **argv, int argc);
+int test_prio(char **argv, int argc);
+
+static int run_test_mm(char **argv, int argc)        { return test_mm(argv + 1, argc - 1); }
+static int run_test_processes(char **argv, int argc) { return test_processes(argv + 1, argc - 1); }
+static int run_test_sync(char **argv, int argc)      { return test_sync(argv + 1, argc - 1); }
+static int run_test_prio(char **argv, int argc)      { return test_prio(argv + 1, argc - 1); }
+
 #define MAX_ARGS    16
 #define LINE_LEN   128
 
@@ -49,6 +63,10 @@ static const Command cmds[] = {
     { "wc",     cmd_wc     },
     { "filter", cmd_filter },
     { "mvar",   cmd_mvar   },
+    { "test_mm",        run_test_mm        },
+    { "test_processes", run_test_processes },
+    { "test_sync",      run_test_sync      },
+    { "test_prio",      run_test_prio      },
     { 0, 0 }
 };
 
