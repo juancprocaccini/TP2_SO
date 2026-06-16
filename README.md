@@ -153,7 +153,22 @@ cat | filter            # escribí texto, Ctrl+D: devuelve el texto sin vocales
 
 ## Limitaciones
 
+## Limitaciones
 
+**Scheduling y Planificación**
+* El planificador utiliza un algoritmo Round Robin con prioridades estáticas. Al no recolectar estadísticas de ejecución (como el tiempo de CPU consumido antes de un *yield* voluntario) ni diferenciar dinámicamente entre procesos limitados por entrada/salida (I/O bound) frente a limitados por procesamiento (CPU bound), su capacidad de respuesta en contextos de usuario altamente interactivos es subóptima.
+
+**Gestión de Recursos (Estructuras Estáticas)**
+* Las tablas de control de procesos (PCBs), los semáforos y los pipes están implementados utilizando arreglos estáticos de tamaño fijo. Esto impone un "techo" rígido en la cantidad máxima de entidades simultáneas que el sistema puede manejar, independientemente de la memoria física disponible. Además, implica una reserva de memoria desde el arranque que podría considerarse desperdiciada si el sistema opera con muy baja carga.
+
+**Administración de Memoria (Custom First-Fit)**
+* Cuando se compila sin Buddy System (`make`), el administrador de memoria custom utiliza un enfoque *First-Fit* iterando sobre una lista implícita. Si bien incluye coalescencia de bloques contiguos, el tiempo de búsqueda para alojar memoria es O(N) (donde N es la cantidad de bloques), lo que degrada el rendimiento a medida que el heap se llena. Además, es naturalmente susceptible a la **fragmentación externa** progresiva.
+
+**Intérprete de Comandos (Shell)**
+* **Pipes limitados:** El diseño actual soporta un máximo de un pipe por comando (`cmd1 | cmd2`). No es posible encadenar procesos múltiples (ej. `cmd1 | cmd2 | cmd3`).
+* **Comandos Built-in:** Funciones como `help`, `clear` y `killall` corren directamente en el proceso principal de la shell. Por diseño, no admiten ejecución en background (`&`) ni pueden acoplarse a tuberías (`|`).
+* **Historial y Edición:** No se implementó un historial temporal de comandos, por lo que no es posible utilizar las flechas direccionales para recuperar comandos ejecutados previamente.
+* **Parser minimalista:** La tokenización divide estrictamente por espacios. No se soporta la agrupación de argumentos mediante comillas (ej. `"mi argumento"`), ni el uso de caracteres de escape.
 
 ---
 
