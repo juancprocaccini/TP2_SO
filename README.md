@@ -32,10 +32,7 @@ Para correr en QEMU (requiere acceso gráfico):
 ```bash
 qemu-system-x86_64 -enable-kvm -m 512 -drive format=raw,file=Image/x64BareBonesImage.img -serial stdio -vga std
 ```
-O bien, con la regla del Makefile (fuera de la imagen de Docker):
-```bash
-make run
-```
+
 
 > Las reglas `make`, `make all` y `make buddy` son exclusivamente de compilación.
 > El arranque de QEMU es una regla aparte (`make run`).
