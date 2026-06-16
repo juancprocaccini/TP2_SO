@@ -33,10 +33,6 @@ Para correr en QEMU (requiere acceso gráfico):
 qemu-system-x86_64 -enable-kvm -m 512 -drive format=raw,file=Image/x64BareBonesImage.img -serial stdio -vga std
 ```
 
-
-> Las reglas `make`, `make all` y `make buddy` son exclusivamente de compilación.
-> El arranque de QEMU es una regla aparte (`make run`).
-
 ---
 
 ## Instrucciones de replicación
@@ -150,8 +146,6 @@ cat | filter            # escribí texto, Ctrl+D: devuelve el texto sin vocales
 ```
 
 ---
-
-## Limitaciones
 
 ## Limitaciones
 
