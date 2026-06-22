@@ -36,12 +36,21 @@ void ctrlc_handler(void) {
      * Se hace antes del kill porque el process_kill del foreground puede ser un
      * self-kill que no retorna. */
     kbd_clear_buffer();
-    /* Si el foreground lee de un pipe, su escritor también es foreground: matarlo primero
-     * para que quede resuelto antes del posible self-kill que no retorna. */
     int rfd = fg->fds[0];
     if (rfd >= 3) {
         pid_t w = pipe_get_pid(rfd - 3, WRITER);
-        if (w >= 0 && w != fg_pid) process_kill(w);
+        if (w >= 0 && w != fg_pid) {
+            /* Matar fg primero garantiza que la shell siempre se despierte:
+             * si un timer preempta process_kill(writer) en el _sti() interno,
+             * la shell corre, re-bloquea en waitpid(writer) y setea
+             * writer->waiting_me = shell; cuando process_kill(writer) retoma,
+             * la despierta de nuevo. Matar writer primero invierte el orden y
+             * puede dejar la shell re-bloqueada esperando un proceso a medio
+             * matar cuyo waiting_me ya fue verificado (era NULL) → deadlock. */
+            process_kill(fg_pid);
+            process_kill(w);
+            return;
+        }
     }
     process_kill(fg_pid);
 }
